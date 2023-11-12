@@ -1,4 +1,4 @@
-using Random, FFTW, Flux, Zygote, UnPack, StatsBase, ArrayPadding, LinearAlgebra
+using Random, FFTW, Flux, UnPack, StatsBase, ArrayPadding, LinearAlgebra
 
 using Flux: @functor, params
 
