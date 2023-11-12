@@ -6,7 +6,8 @@ We design a Fourier domain algorithm for generating manufacturable geometry for 
 ## Usage
 <!-- ## Usage -->
 ```julia
-using Jello
+using Jello, Random
+Random.seed!(1)
 
 l = 128
 dims = (l, l)
@@ -21,7 +22,7 @@ a = m(α)
 In real applications, our geometry generator would interface with a FEM or FDM solver that computes a penalty. For gradient based adjoint optimization, the solver needs to be amenable to automatic differentiation or can have hard coded adjoints. For the sake of testing `Jello.jl`, we pretend we know the optimal geometry (eg circle) and verify that `Jello.jl` can reach it through gradient descent.
 ```julia
 using Random, Flux, CairoMakie, LinearAlgebra
-using Jello.jl
+using Jello
 Random.seed!(1)
 
 l = 128
