@@ -5,8 +5,8 @@ using Flux: @functor, params
 
 struct Mask
     a::AbstractArray
-    m
-    dims
+    # m
+    sz
 end
 Flux.@functor Mask
 Flux.params(m::Mask) = m.a
@@ -21,20 +21,18 @@ Functor for generating length scale controlled geometry mask, represented as arr
 - lmin: minimum length scale 
 - α: opacity
 """
-function Mask(dims, lmin)
-    d = length(dims)
-    t = round.(Int, dims ./ 2 ./ lmin)
-    kmax = prod(t)^(1 / d)
+function Mask(sz, lmin)
+    d = length(sz)
+    t = round.(Int, sz ./ 2 ./ lmin)
+    # kmax = prod(t)^(1 / d)
     a = complex.(randn(t), randn(t))
-    m = [norm(collect(v)) < kmax + 0.1 for v = Iterators.product(axes(a)...)]
-    Mask(a, m, dims)
+    # m = [norm(collect(v)) < kmax + 0.1 for v = Iterators.product(axes(a)...)]
+    Mask(a, sz)
 end
 f(x, α) = x > 0.0 ? (1 - α) + α * x : α + α * x
 function (m::Mask)(α=0.1, symmetries=nothing)
-    @unpack a, dims = m
-    a = m.m .* a
-    k = size(a, 1)
-    r = real(ifft(pad(a, 0, fill(0, k), dims .- size(a))))
+    @unpack a, sz = m
+    r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .- size(a))))
     r /= 2mean(abs.(r))
     r = f.(r, α)
 
