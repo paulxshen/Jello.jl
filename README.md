@@ -14,8 +14,8 @@ sz = (l, l)
 lmin = 16
 m = Mask(sz, lmin)
 
-α = 0.1
-a = m(α)
+contrast = 0.1
+a = m(contrast)
 ```
 ![](sample.png)
 ## Adjoint optimization
