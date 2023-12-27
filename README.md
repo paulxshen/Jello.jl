@@ -10,9 +10,9 @@ using Jello, Random
 Random.seed!(1)
 
 l = 128
-sz = (l, l)
+dims = (l, l)
 lmin = 16
-m = Mask(sz, lmin)
+m = Mask(dims, lmin)
 
 contrast = 0.1
 a = m(contrast)
@@ -21,29 +21,7 @@ a = m(contrast)
 ## Adjoint optimization
 In real applications, our geometry generator would interface with a FEM or FDM solver that computes a loss function against a target metric. For gradient based adjoint optimization, the solver needs to be amenable to automatic differentiation or have hard coded adjoints. For the sake of testing `Jello.jl`, we pretend we know the optimal geometry (eg circle) and verify that `Jello.jl` can reach it through gradient descent.
 ```julia
-using Random, Flux, CairoMakie, LinearAlgebra
-using Jello
-Random.seed!(1)
 
-l = 128
-y = float.([norm([x, y] - [l, l] / 2) < l/4 for x = 1:l, y = 1:l]) # circle
-loss(m) = Flux.mae(m(0.1), y)
-
-m = Mask((l, l), l / 16)
-opt = Adam(0.1)
-opt_state = Flux.setup(opt, m)
-
-fig = Figure()
-heatmap(fig[1, 1], m(0), axis=(; title="start of training"))
-for i = 1:100
-    Flux.train!(m, [[]], opt_state) do m,_
-        l = loss(m)
-        println(l)
-        l
-    end
-end
-heatmap(fig[1, 2], m(0), axis=(; title="end of training"))
-display(fig)
 ```
 ![](train.png)
 ## Collaboration

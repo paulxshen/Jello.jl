@@ -7,52 +7,54 @@ struct Mask
     a::AbstractArray
     p
     bounds
-    sz
+    dims
     symmetries
     diagonal_symmetry
 end
 Flux.@functor Mask
 trainable_params = (:a,)
 Flux.trainable(m::Mask) = (; a=m.a,)# p=m.p)
-# Flux.params(m::Mask) = (; a=m.a,)# p=m.p)
 
+struct NNMask
+    f
+    p
+    dims
+    symmetries
+    diagonal_symmetry
+end
+Flux.@functor NNMask
+# Flux.trainable(m::NNMask) = (; f=m.f)# p=m.p)
+# `contrast = 0` yields a binary morphology without any gradient for adjoint optimization.
 """
-    Mask(sz, lmin; T=Float32, symmetries=[], diagonal_symmetry=false)
-    (m::Mask)(contrast=0.1)
+    Mask(dims, nbasis, contrast=0.2f0, bounds=(0, 1); T=Float32, symmetries=[], diagonal_symmetry=false)
+    Mask(dims, contrast=0.2f0, bounds=(0, 1); lmin::Real, kw...)
+    (m::Mask)()
 
-Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `Mask` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are at least `lmin`. contrast controls the opacity and gradient present. `contrast = 0` yields a binary morphology without any gradient for adjoint optimization. `contrast = 0.1` yields an almost black-white mask with some grayscale gradient .
+Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `Mask` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly at least `lmin ≈ dims / nbasis`. contrast controls the edge sharpness. High contrast >1 yields almost a binary image which limits amount of adjoint gradient present.  `contrast = 0.2` yields a smooth mask slightly sharper than the Fourier basis output and is a good starting point for adjoint optimization.
 
-- sz: size of mask array
-- lmin: minimum length scale 
-- contrast: opacity
+Args
+- `dims`: size of mask array
+- `lmin`: minimum length scale 
+- `contrast`: edge sharpness
+- `nbasis`: # of Fourier basis along each dimension
 """
-function Mask(sz, nbasis, contrast=0.1f0, bounds=(0, 1); T=Float32, symmetries=[], diagonal_symmetry=false)
+function Mask(dims, nbasis, contrast=0.2f0, bounds=(0, 1); T=Float32, symmetries=[], diagonal_symmetry=false)
     if length(nbasis) == 1
-        nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
+        nbasis = round.(Int, nbasis ./ minimum(dims) .* dims)
     end
     a = complex.(randn(T, nbasis...), randn(T, nbasis...))
-    # m = [norm(collect(v)) < kmax + 0.1 for v = Iterators.product(axes(a)...)]
-    Mask(a, [contrast], bounds, sz, symmetries, diagonal_symmetry)
+    Mask(a, [contrast], bounds, dims, symmetries, diagonal_symmetry)
 end
-function Mask(sz; lmin::Real, kw...)
-    nbasis = round.(Int, sz ./ lmin)
-    Mask(sz, ; nbasis, kw...)
+function Mask(dims, a...; lmin::Real, kw...)
+    nbasis = round.(Int, dims ./ lmin)
+    Mask(dims, nbasis, a...; kw...)
 end
-# f(x::T, contrast) where {T} =
-#     x > 0.0 ? (1 - contrast) + contrast * x :
-#     contrast + contrast * x
-# f(x::T, contrast) where {T} =
-#     if x > 0.0
-#         x < 1 ? (1 - contrast) + contrast * x : T(1)
-#     else
-#         -1 < x ? contrast + contrast * x : T(0)
-#     end
-function (m::Mask)(contrast=m.p[1], σ=x -> Flux.σ(x))
-    # function (m::Mask)(contrast=0.1f0, ; σ=x -> f(x, contrast))
-    @unpack a, sz, bounds, symmetries, diagonal_symmetry = m
+
+function (m::Mask)(contrast=m.p[1], σ=Flux.σ)
+    @unpack a, dims, bounds, symmetries, diagonal_symmetry = m
     contrast = min(contrast, bounds[2])
     contrast = max(contrast, bounds[1])
-    r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .- size(a))))
+    r = real(ifft(pad(a, 0, fill(0, ndims(a)), dims .- size(a))))
 
     if !isempty(symmetries)
         r += reverse(r, dims=symmetries)
@@ -62,23 +64,41 @@ function (m::Mask)(contrast=m.p[1], σ=x -> Flux.σ(x))
 
     end
     if !isinf(contrast)
-        r *= 10contrast / mean(abs.(r))
+        r *= 10F(contrast) / mean(abs.(r))
 
         r = σ.(r)
     else
-        # σ = isnothing(contrast) ? x -> x + 0.5f0 : x -> f(x, contrast)
-        # r = max.(r, 0.0f0)
-        # r = min.(r, 1.0f0)
-        return F.(r .> 0)
+        return r .> 0
     end
     r
 end
+function NNMask(dims, f, contrast=0.2f0; T=Float32, symmetries=[], diagonal_symmetry=false)
+    NNMask(f, [contrast], dims, symmetries, diagonal_symmetry)
+end
 
-# function resize(m, sz)
-#     # a = fft(imresize(m(; σ=identity), sz))[range.(1, m.sz)...]
-#     a = fft(imresize(m(nothing), sz))[range.(1, size(m.a))...]
-#     Mask(a, sz, m.symmetries, m.diagonal_symmetry)
-# end
+function (m::NNMask)(contrast=m.p[1], σ=Flux.σ)
+    @unpack f, dims, symmetries, diagonal_symmetry = m
+    r = [f(collect(t) ./ dims)[1] for t = Iterators.product(Base.oneto.(dims)...)]
+
+    if !isempty(symmetries)
+        r += reverse(r, dims=symmetries)
+        r /= 2
+    elseif diagonal_symmetry == true
+        r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+
+    end
+    # r *= 10contrast / mean(abs.(r))
+
+    # r = σ.(r)
+    r
+end
+
+function Mask(m::Mask; dims=m.dims, contrast=m.p[1])
+    Mask(m.f, [contrast], dims, m.symmetries, m.diagonal_symmetry)
+end
+function NNMask(m; dims=m.dims, contrast=m.p[1])
+    NNMask(m.f, [contrast], dims, m.symmetries, m.diagonal_symmetry)
+end
 
 function cvec(v,)
     a = reshape(v, length(v) ÷ 2, 2)
@@ -106,14 +126,14 @@ function optimfuncs(loss, re)
 
     function g!(storage, x)
         model = re(x)
-        g = gradient(loss, model)[1]
-        storage .= destructure(g)[1]
+        g = gradient(() -> loss(model), params(model))[1]
+        storage .= realvec(g)
     end
     function fg!(storage, x)
         model = re(x)
-        l, (g,) = withgradient(loss, model)
-        storage .= destructure(g)[1]
-        # pr
+        l, (g,) = withgradient(() -> loss(model), params(model))
+        # println(g)
+        storage .= realvec(g)
         l
     end
     f, g!, fg!
