@@ -10,7 +10,6 @@ Random.seed!(1)
 l = 32
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
 # contrast = .1f0
-# model = NNMask((l, l), Chain(Dense(2, 4, tanh), Dense(4, 8, tanh), Dense(8, 16, tanh), Dense(16, 1, sigmoid)), 1.0f0)
 model = Mask((l, l), 8, 1.0f0)
 iterations = 80
 
@@ -36,7 +35,6 @@ end
 # od = OnceDifferentiable(f, g!, fg!, x0)
 # @showtime res = optimize(od, x0, LBFGS(), Optim.Options(f_tol=0, iterations=20, show_every=1, show_trace=true))
 # model = re(minimizer(res))
-# res = 
 
 heatmap(fig[1, 2], model(), axis=(; title="end of training"))
 model = Mask(model; dims=2 .* model.dims)
