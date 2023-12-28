@@ -1,6 +1,5 @@
 using Random, FFTW, Flux, UnPack, StatsBase, ArrayPadding, LinearAlgebra
-
-using Flux: @functor, params
+using Flux: @functor, gradient, params, withgradient
 F = Float32
 
 struct Mask
