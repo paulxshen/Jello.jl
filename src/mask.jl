@@ -9,7 +9,7 @@ struct Mask
     symmetries
     diagonal_symmetry
 end
-@functor Mask
+@functor Mask (a,)
 """
     Mask(dims, nbasis, contrast=0.2f0; T=Float32, symmetries=[], diagonal_symmetry=false)
     Mask(dims, contrast=0.2f0; lmin::Real, kw...)
