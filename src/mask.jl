@@ -54,7 +54,7 @@ function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
     r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .- size(a))))
 
     if !isempty(symmetries)
-        r += reverse(r, sz=symmetries)
+        r += reverse(r, dims=symmetries)
         r /= 2
     elseif diagonal_symmetry == true
         r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
