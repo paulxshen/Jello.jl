@@ -1,6 +1,6 @@
 module Jello
-include("mask.jl")
+include("main.jl")
 
 greet() = print("Hello World!")
-export Mask, destructure, realvec
+export Blob
 end # module Jello

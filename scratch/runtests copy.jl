@@ -9,7 +9,7 @@ l = 32
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
 contrast = 10.0f0
 nbasis = 4
-model = Mask((l, l), nbasis, contrast)
+model = Blob((l, l), nbasis, contrast)
 # iterations = 80
 
 fig = Figure()
@@ -27,3 +27,8 @@ f = loss ∘ re
 # @showtime res = optimize(f, x0,NelderMead(), Optim.Options(f_tol=0, iterations=200, show_every=1, show_trace=true))
 # model = re(minimizer(res))
 heatmap(model(), axis=(; title="Flux.Adam $n2 steps", aspect))
+
+
+# demo resizing
+model_ = Blob(model, (2 .* size(model))...)
+heatmap(fig[3, 1], model_(), axis=(; title="resized", aspect))
