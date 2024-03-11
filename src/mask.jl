@@ -100,7 +100,7 @@ function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
 
     # m1 = mo .|| .!mc
     # r .* m1 + .!(m) .* (.!(m1))
-    max.(r .* m, (m - m0 .> 0))
+    r .* (m .== m0) + (m - m0 .> 0)
 end
 
 
