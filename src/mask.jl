@@ -47,6 +47,7 @@ function Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmi
     end
     Blob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
 end
+Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
 
 function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
     @unpack ar, ai, sz, ose, cse, symmetries, diagonal_symmetry = m
