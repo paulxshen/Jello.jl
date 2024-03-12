@@ -25,11 +25,11 @@ Args
 - `sz`: size of mask array
 - `contrast`: edge sharpness
 - `nbasis`: # of Fourier basis along each dimension
-- `rmin`: minimal radii during morphological filtering
+- `rmin`: minimal radii during morphological filtering, can also be `nothing` (no filtering) or `:auto` (automatically set wrt `nbasis`)
 - `rminfill`: same as `rmin` but only applied to fill (bright) features
 - `rminvoid`: ditto
 """
-function Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false)
+function Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
     end
@@ -39,12 +39,42 @@ function Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmi
     ai = randn(T, nbasis...)
 
     ose = cse = nothing
+    v = minimum(round.(Int, sz ./ nbasis ./ 4))
+    rminfill == :auto && (rminfill = v)
+    rminvoid == :auto && (rminvoid = v)
+
+    w = "rmin too high relative to nbasis. much of generated geometry may get erased by morphological filtering . consider setting to `:auto` which in this case evaluates to $v"
+
     if !isnothing(rminfill,)
+        if rminfill > v
+            @warn w
+        end
         ose = circle(rminfill, d) |> centered
     end
     if !isnothing(rminvoid)
+        if rminvoid > v
+            @warn w
+        end
         cse = circle(rminvoid, d) |> centered
     end
+
+    verbose && @info """
+     Blob configs
+     
+     Geometry generation 
+     - Fourier k-space size (# of Fourier basis per dimension): $nbasis
+     - edge contrast : $contrast
+
+     Morphological filtering (skipped if nothing )
+     - min fill radii: $rminfill
+     - min void radii: $rminvoid
+
+     Symmetries: $symmetries
+
+     Suppress this message by verbose=false
+     Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
+     """
+
     Blob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
 end
 Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
