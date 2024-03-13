@@ -92,7 +92,8 @@ function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
 
     end
     if !isinf(contrast)
-        r *= 1contrast / mean(abs.(r))
+        # r *= 1contrast / mean(abs.(r))
+        r *= 1contrast / maximum(abs.(r))
 
         r = σ.(r)
     else
