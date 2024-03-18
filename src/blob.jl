@@ -29,14 +29,22 @@ Args
 - `rminfill`: same as `rmin` but only applied to fill (bright) features
 - `rminvoid`: ditto
 """
-function Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
+function Blob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
     end
     d = length(sz)
     # a = complex.(randn(T, nbasis...), randn(T, nbasis...))
-    ar = randn(T, nbasis...)
-    ai = randn(T, nbasis...)
+    if isnothing(init)
+        ar = randn(T, nbasis...)
+        ai = randn(T, nbasis...)
+    else
+        ar = zeros(T, nbasis...)
+        ai = zeros(T, nbasis...)
+        if init == 1
+            ar[1] = 1
+        end
+    end
 
     ose = cse = nothing
     v = minimum(round.(Int, sz ./ nbasis ./ 4))
