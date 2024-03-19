@@ -90,7 +90,7 @@ Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
 function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
     @unpack ar, ai, sz, ose, cse, symmetries, diagonal_symmetry = m
     a = complex.(ar, ai)
-    margins = round.(Int, sz ./ size(a) ./ 2)
+    margins = round.(Int, sz ./ size(a) .* 0.75)
     i = range.(margins .+ 1, margins .+ sz)
     r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
 
