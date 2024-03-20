@@ -9,7 +9,7 @@ l = 32
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
 contrast = 10.0f0
 nbasis = 4
-model = Blob((l, l), nbasis, contrast)
+model = FourierBlob((l, l), nbasis, contrast)
 # iterations = 80
 
 fig = Figure()
@@ -30,5 +30,5 @@ heatmap(model(), axis=(; title="Flux.Adam $n2 steps", aspect))
 
 
 # demo resizing
-model_ = Blob(model, (2 .* size(model))...)
+model_ = FourierBlob(model, (2 .* size(model))...)
 heatmap(fig[3, 1], model_(), axis=(; title="resized", aspect))

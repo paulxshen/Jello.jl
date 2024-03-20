@@ -2,7 +2,7 @@ function circle(r, d)
     r = round(Int, r)
     [norm(v) <= r for v = Base.product(fill(-r:r, d)...)] # circle
 end
-struct Blob
+struct FourierBlob
     ar::AbstractArray
     ai::AbstractArray
     contrast
@@ -12,14 +12,14 @@ struct Blob
     symmetries
     diagonal_symmetry
 end
-@functor Blob (ar, ai)
-Base.size(m::Blob) = m.sz
+@functor FourierBlob (ar, ai)
+Base.size(m::FourierBlob) = m.sz
 
 """
-    Blob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false)
-    (m::Blob)()
+    FourierBlob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false)
+    (m::FourierBlob)()
 
-Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `Blob` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly on order of `edge length / nbasis`. contrast controls the edge sharpness. Setting `rmin` applies additional morphological filtering which eliminates smaller features and radii
+Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `FourierBlob` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly on order of `edge length / nbasis`. contrast controls the edge sharpness. Setting `rmin` applies additional morphological filtering which eliminates smaller features and radii
 
 Args
 - `sz`: size of mask array
@@ -29,7 +29,7 @@ Args
 - `rminfill`: same as `rmin` but only applied to fill (bright) features
 - `rminvoid`: ditto
 """
-function Blob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
+function FourierBlob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
     end
@@ -67,7 +67,7 @@ function Blob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing
     end
 
     verbose && @info """
-     Blob configs
+     FourierBlob configs
      
      Geometry generation 
      - Fourier k-space size (# of Fourier basis per dimension): $nbasis
@@ -83,11 +83,11 @@ function Blob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing
      Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
      """
 
-    Blob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
+    FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
 end
-Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
+FourierBlob(sz::Tuple; kw...) = FourierBlob(sz...; kw...)
 
-function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
+function (m::FourierBlob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
     @unpack ar, ai, sz, ose, cse, symmetries, diagonal_symmetry = m
     a = complex.(ar, ai)
     margins = round.(Int, sz ./ size(a) .* 0.75)
@@ -146,6 +146,6 @@ function (m::Blob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
 end
 
 
-function Blob(m::Blob, sz...; contrast=m.contrast,)
-    Blob(m.ar, m.ai, contrast, sz, m.ose, m.cse, m.symmetries, m.diagonal_symmetry)
+function FourierBlob(m::FourierBlob, sz...; contrast=m.contrast,)
+    FourierBlob(m.ar, m.ai, contrast, sz, m.ose, m.cse, m.symmetries, m.diagonal_symmetry)
 end

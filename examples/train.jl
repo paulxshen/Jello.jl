@@ -5,11 +5,12 @@ using AbbreviatedStackTraces
 include("../src/main.jl")
 
 Random.seed!(1)
-l = 50
+l = 30
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
-model = Blob(l, l; nbasis=4, contrast=20,)
-# model = Blob(l, l; nbasis=4, contrast=10, rmin=3)
-iterations = 100
+model = RealBlob(l, l; nbasis=10, contrast=20,)
+# model = FourierBlob(l, l; nbasis=4, contrast=20,)
+# model = FourierBlob(l, l; nbasis=4, contrast=10, rmin=3)
+iterations = 20
 
 fig = Figure()
 empty!(fig)
@@ -24,7 +25,7 @@ opt_state = Flux.setup(opt, model)
 for i = 1:iterations
     l, (dldm,) = withgradient(loss, model)
     Flux.update!(opt_state, model, dldm)
-    i % 10 == 0 && println("$i $l")
+    i % 1 == 0 && println("$i $l")
 end
 
 heatmap(fig[2, 1], model(), axis=(; title="Flux.Adam $iterations steps", aspect))
