@@ -1,7 +1,3 @@
-function circle(r, d)
-    r = round(Int, r)
-    [norm(v) <= r for v = Base.product(fill(-r:r, d)...)] # circle
-end
 struct FourierBlob
     ar::AbstractArray
     ai::AbstractArray
