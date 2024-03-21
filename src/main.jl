@@ -4,3 +4,4 @@ using Random, FFTW, UnPack, StatsBase, ArrayPadding, LinearAlgebra, Functors, Im
 include("utils.jl")
 include("realblob.jl")
 include("fourierblob.jl")
+include("blob.jl")

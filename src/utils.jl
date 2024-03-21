@@ -30,7 +30,7 @@ function apply(symmetries, r)
 end
 function apply(σ, contrast::Real, r)
     if !isinf(contrast)
-        # r /= mean(abs.(r))
+        r /= mean(abs.(r))
         # r = σ.(contrast * σ.(r))
         r = σ.(contrast * r)
     else

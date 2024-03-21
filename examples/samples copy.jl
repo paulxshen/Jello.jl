@@ -8,7 +8,7 @@ l = 100
 Random.seed!(1)
 contrast = 1
 rmin = nothing
-m = RealBlob(l, l; contrast)
+m = Blob(l, l; contrast)
 # heatmap(fig2d[1, 1], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
 
 # Random.seed!(1)
