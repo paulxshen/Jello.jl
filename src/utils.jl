@@ -30,8 +30,9 @@ function apply(symmetries, r)
 end
 function apply(σ, contrast::Real, r)
     if !isinf(contrast)
-        r *= 1contrast / mean(abs.(r))
-        r = σ.(r)
+        r /= mean(abs.(r))
+        # r = σ.(contrast * σ.(r))
+        r = σ.(contrast * r)
     else
         r = r .> 0.5
     end

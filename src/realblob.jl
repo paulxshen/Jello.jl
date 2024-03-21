@@ -37,8 +37,8 @@ function RealBlob(sz...;
 
     if isnothing(init)
         a = randn(T, nbasis...)
-    else
-        a = init
+    elseif init == 1
+        a = ones(T, nbasis...)
     end
     nn = map(CartesianIndices(Tuple(sz))) do i
         i = collect(T.(1 .+ (Tuple(i) .- 1) .* (size(a) .- 1) ./ (sz .- 1)))
@@ -75,7 +75,7 @@ RealBlob(sz::Tuple; kw...) = RealBlob(sz...; kw...)
 function (m::RealBlob)()
     @unpack a, contrast, nn, sz, ose, cse, symmetries, diagonal_symmetry = m
     # itp = interpolate(a, BSpline(Linear()))
-    # a = σ(a)
+    # a = σ.(a)
     r = map(nn) do (k, w)
         sum(zip(k, w)) do (k, w)
             a[k...] * w
@@ -85,7 +85,7 @@ function (m::RealBlob)()
     # imresize!(r, a)
     # r = copy(r)
     r = apply(symmetries, r)
-    # r = σ(contrast * r)
+    # r = σ.(contrast * r)
     r = apply(σ, contrast, r)
     r = apply(ose, cse, r)
 end
