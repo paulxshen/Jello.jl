@@ -112,5 +112,5 @@ function Blob(sz...;
         return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
     end
 end
-Blob(sz::Tuple; kw...) = RealBlob(sz...; kw...)
+Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
 

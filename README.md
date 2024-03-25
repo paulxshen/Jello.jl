@@ -3,7 +3,7 @@
 Please install directly from repo `]add https://github.com/paulxshen/Jello.jl`. The general registry  version is lagging 
 
 ## Manufacturable geometry generation for topology optimization & generative design
-We design a parameter efficient, fully differentiable, length scale controlled Fourier  geometry generator for topology optimization & generative inverse design. It uses Fourier domain basis combined with real space morphological filtering. First, it approximately bound length scales in any dimension by deriving real space geometry from a compact Fourier k-space of spatial frequencies via the inverse Fourier transform. Next, it applies optional morphological filtering to exactly eliminate undesirable thin features, close spacings and tight bends that hamper manufacturability or induce checkerboard instability.  Adjustable sigmoid  nonlinearity is used to control edge sharpness and induce stable bounded values and adjoint gradients without an extraneous non-binary density penalty function.
+We design parameter efficient, fully differentiable, length scale controlled geometry generators for topology optimization & generative inverse design. We use either a real space interpolation grid basis or a Fourier domain basis. The interpolation algorithm in between a grid of knots whose regular spacing controls the length scale .  The Fourier algorithm  approximately bound length scales in any dimension by deriving real space geometry from a compact Fourier k-space of spatial frequencies via the inverse Fourier transform. Both algorithms may be combined with real space morphological filtering which  exactly eliminate undesirable thin features, close spacings and tight bends that hamper manufacturability or induce checkerboard instability. In both, Adjustable sigmoid  nonlinearity is used to control edge sharpness and induce stable bounded values and adjoint gradients without an extraneous non-binary density penalty function.
 
 ## Usage
 ```julia
@@ -11,34 +11,44 @@ using Random, GLMakie, LinearAlgebra
 using Jello
 
 fig2d = Figure()
-l = 100
+l = 50
 
 Random.seed!(1)
+alg = :interpolation
 nbasis = 4
 contrast = 1
 rmin = nothing
-m = FourierBlob(l, l; nbasis, contrast)
-heatmap(fig2d[1, 1], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
+m = Blob(l, l; alg, nbasis, contrast)
+heatmap(fig2d[1, 1], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
 
 Random.seed!(1)
+alg = :fourier
+nbasis = 4
+contrast = 1
+rmin = nothing
+m = Blob(l, l; alg, nbasis, contrast)
+heatmap(fig2d[1, 2], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
+
+Random.seed!(1)
+alg = :interpolation
 nbasis = 6
-m = FourierBlob(l, l; nbasis, contrast)
-heatmap(fig2d[2, 1], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
+m = Blob(l, l; nbasis, contrast)
+heatmap(fig2d[2, 1], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
 
 Random.seed!(1)
 contrast = 20
-m = FourierBlob(l, l; nbasis, contrast)
-heatmap(fig2d[2, 2], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
+m = Blob(l, l; nbasis, contrast)
+heatmap(fig2d[2, 2], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
 
-Random.seed!(1)
-rmin = :auto
-m = FourierBlob(l, l; nbasis, contrast, rmin)
-heatmap(fig2d[2, 3], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = :$rmin"))
+# Random.seed!(1)
+# rmin = :auto
+# m = Blob(l, l; nbasis, contrast, rmin)
+# heatmap(fig2d[2, 3], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = :$rmin"))
 
 Random.seed!(1)
 rmin = 3
-m = FourierBlob(l, l; nbasis, contrast, rmin)
-heatmap(fig2d[2, 4], m(); axis=(; title="$l x $l\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
+m = Blob(l, l; nbasis, contrast, rmin)
+heatmap(fig2d[2, 3], m(); axis=(; title="$l x $l\nalg = $alg\nnbasis = $nbasis\ncontrast = $contrast\nrmin = $rmin"))
 
 save("samples2d.png", fig2d)
 fig2d
@@ -47,8 +57,8 @@ Random.seed!(1)
 l = 40
 nbasis = 4
 contrast = 20
-m = FourierBlob(l, l, l; nbasis, contrast,)
-fig3d = volume(m(); algorithm=:absorption, axis=(; type=Axis3, title="$l x $l x $l, nbasis = $nbasis, contrast = $contrast, rmin = $rmin"))
+m = Blob(l, l, l; nbasis, contrast,)
+fig3d = volume(m(); algorithm=:absorption, axis=(; type=Axis3, title="$l x $l x $l, alg = $alg, nbasis = $nbasis, contrast = $contrast, rmin = $rmin"))
 save("samples3d.png", fig3d)
 fig3d
 ```
@@ -65,11 +75,11 @@ using AbbreviatedStackTraces
 using Jello
 
 Random.seed!(1)
-l = 50
+l = 30
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
-model = FourierBlob(l, l; nbasis=4, contrast=20,)
-# model = FourierBlob(l, l; nbasis=4, contrast=20, rmin=:auto)
-iterations = 100
+model = Blob(l, l; alg=:interpolation, nbasis=10, contrast=10,)
+# model = Blob(l, l; alg=:fourier, nbasis=10, contrast=10,)
+iterations = 20
 
 fig = Figure()
 empty!(fig)
@@ -84,10 +94,11 @@ opt_state = Flux.setup(opt, model)
 for i = 1:iterations
     l, (dldm,) = withgradient(loss, model)
     Flux.update!(opt_state, model, dldm)
-    i % 10 == 0 && println("$i $l")
+    i % 1 == 0 && println("$i $l")
 end
 
 heatmap(fig[2, 1], model(), axis=(; title="Flux.Adam $iterations steps", aspect))
+save("pic.png", fig)
 display(fig)
 ```
 
