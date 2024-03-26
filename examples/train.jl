@@ -7,7 +7,7 @@ include("../src/main.jl")
 Random.seed!(1)
 l = 30
 y = float.([norm([x, y] - [l, l] / 2) < l / 4 for x = 1:l, y = 1:l]) # circle
-model = Blob(l, l; alg=:interpolation, nbasis=10, contrast=10,)
+model = Blob(l, l; alg=:interpolation, nbasis=8, contrast=20,)
 # model = Blob(l, l; alg=:fourier, nbasis=10, contrast=10,)
 iterations = 20
 

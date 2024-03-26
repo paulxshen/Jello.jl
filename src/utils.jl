@@ -1,4 +1,5 @@
 σ(x) = 1 / (1 + exp(-x))
+_ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function circle(r, d)
     r = round(Int, r)
     [norm(v) <= r for v = Base.product(fill(-r:r, d)...)] # circle

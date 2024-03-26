@@ -37,9 +37,10 @@ Args
 function (m::FourierBlob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
     @unpack ar, ai, sz, ose, cse, symmetries, diagonal_symmetry = m
     a = complex.(ar, ai)
-    margins = round.(Int, sz ./ size(a) .* 0.75)
-    i = range.(margins .+ 1, margins .+ sz)
-    r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
+    # margins = round.(Int, sz ./ size(a) .* 0.75)
+    # i = range.(margins .+ 1, margins .+ sz)
+    # r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
+    r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .- size(a))))
 
     r = apply(symmetries, r)
     # r = σ.(contrast * r)

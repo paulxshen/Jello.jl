@@ -1,6 +1,7 @@
 struct RealBlob
     a::AbstractArray
     nn
+    w
     contrast::Real
     sz
     ose
@@ -12,14 +13,15 @@ Base.size(m::RealBlob) = m.sz
 
 
 function (m::RealBlob)()
-    @unpack a, contrast, nn, sz, ose, cse, symmetries, = m
+    @unpack a, contrast, nn, w, sz, ose, cse, symmetries, = m
     # itp = interpolate(a, BSpline(Linear()))
     # a = σ.(a)
-    r = map(nn) do (k, w)
-        sum(zip(k, w)) do (k, w)
-            a[k...] * w
-        end
-    end
+    # r = map(nn) do (k, w)
+    #     sum(zip(k, w)) do (k, w)
+    #         a[k...] * w
+    #     end
+    # end
+    r = sum([getindex.((a,), k) .* w for (k, w) = zip(nn, w)])
     # r = Buffer(a, sz)
     # imresize!(r, a)
     # r = copy(r)

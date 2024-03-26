@@ -23,6 +23,19 @@ function Blob(sz...;
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
     end
+    com = """
+          - output size: $sz
+          - edge contrast : $contrast
+          
+          Morphological filtering (skipped if nothing )
+          - min fill radii: $rminfill
+          - min void radii: $rminvoid
+          
+          Symmetry dimensions: $symmetries
+          
+          Suppress this message by verbose=false
+          Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
+          """
 
     if alg == :interpolation
         if isnothing(init)
@@ -30,36 +43,37 @@ function Blob(sz...;
         elseif init == 1
             a = ones(T, nbasis...)
         end
-        nn = map(CartesianIndices(Tuple(sz))) do i
+
+        t = map(CartesianIndices(Tuple(sz))) do i
             i = collect(T.(1 .+ (Tuple(i) .- 1) .* (size(a) .- 1) ./ (sz .- 1)))
-            nn = Base.product(range.(floor.(Int, i), ceil.(Int, i))...)
+            nn = collect(Base.product(range.(floor.(Int, i), _ceil.(i))...))
 
             w = map(nn) do k
                 prod(1 .- abs.(i .- k))
             end
             nn, w
         end
+        l = LinearIndices(a)
+        nn = [
+            map(getindex.(getindex.(t, 1), i)) do c
+                c = min.(c, size(a))
+                l[c...]
+            end for i = 1:2^d
+        ]
+        w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
+
         ose, cse = se(rminfill, rminvoid)
 
         verbose && @info """
          Blob configs
          
          Geometry generation 
+         - algorithm: real space interpolation
          - interpolation grid: $nbasis
-         - output size: $sz
-         - edge contrast : $contrast
-
-         Morphological filtering (skipped if nothing )
-         - min fill radii: $rminfill
-         - min void radii: $rminvoid
-
-         Symmetry dimensions: $symmetries
-
-         Suppress this message by verbose=false
-         Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
+         $com
          """
 
-        return RealBlob(a, nn, T(contrast), sz, ose, cse, symmetries,)
+        return RealBlob(a, nn, w, T(contrast), sz, ose, cse, symmetries,)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)
@@ -93,20 +107,12 @@ function Blob(sz...;
         end
 
         verbose && @info """
-         FourierBlob configs
+         Blob configs
          
          Geometry generation 
+         - algorithm: Fourier basis
          - Fourier k-space size (# of Fourier basis per dimension): $nbasis
-         - edge contrast : $contrast
-
-         Morphological filtering (skipped if nothing )
-         - min fill radii: $rminfill
-         - min void radii: $rminvoid
-
-         Symmetries: $symmetries
-
-         Suppress this message by verbose=false
-         Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
+         $com
          """
 
         return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
