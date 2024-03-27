@@ -26,7 +26,7 @@ function (m::RealBlob)()
     # imresize!(r, a)
     # r = copy(r)
     r = apply(symmetries, r)
-    r /= mean(abs.(r))
+    # r /= mean(abs.(r))
     r = NNlib.σ.(contrast * r)
     r = apply(ose, cse, r)
 end
