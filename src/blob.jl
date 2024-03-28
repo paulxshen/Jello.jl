@@ -38,10 +38,12 @@ function Blob(sz...;
           """
 
     if alg == :interpolation
-        if isnothing(init)
-            a = randn(T, nbasis...)
-        elseif init == 1
-            a = ones(T, nbasis...)
+        a = if isnothing(init)
+            randn(T, nbasis...)
+        elseif isa(init, Number)
+            T(init) * ones(T, nbasis...)
+        else
+            T.(init)
         end
 
         t = map(CartesianIndices(Tuple(sz))) do i
