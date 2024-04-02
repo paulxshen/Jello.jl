@@ -19,9 +19,9 @@ function se(rminfill, rminvoid, d=2)
     end
     ose, cse
 end
-function apply(symmetries, r)
-    if !isempty(symmetries)
-        r += reverse(r, dims=symmetries)
+function apply(symmetry_dims, r)
+    if !isempty(symmetry_dims)
+        r += reverse(r, dims=symmetry_dims)
         r /= 2
         # elseif diagonal_symmetry == true
         #     r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge

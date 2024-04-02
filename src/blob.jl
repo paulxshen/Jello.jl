@@ -1,5 +1,5 @@
 """
-    Blob(sz...; nbasis=4, contrast=1, alg=:interpolation, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[])
+    Blob(sz...; nbasis=4, contrast=1, alg=:interpolation, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetry_dims=[])
     (m::RealBlob)()
 
 Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `RealBlob` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly on order of `edge length / nbasis`. contrast controls the edge sharpness. Setting `rmin` applies additional morphological filtering which eliminates smaller features and radii
@@ -12,12 +12,12 @@ Args
 - `rmin`: minimal radii during morphological filtering, can also be `nothing` (no filtering) or `:auto` (automatically set wrt `nbasis`)
 - `rminfill`: same as `rmin` but only applied to fill (bright) features
 - `rminvoid`: ditto
-- `symmetries`: symmetry dimensions
+- `symmetry_dims`: symmetry dimensions
 """
 function Blob(sz...;
     nbasis=4, alg=:interpolation, init=nothing, contrast=1, T=Float32,
     rmin=nothing, rminfill=rmin, rminvoid=rmin,
-    symmetries=[], diagonal_symmetry=false,
+    symmetry_dims=[], diagonal_symmetry=false,
     verbose=true)
     d = length(sz)
     if length(nbasis) == 1
@@ -31,7 +31,7 @@ function Blob(sz...;
           - min fill radii: $rminfill
           - min void radii: $rminvoid
           
-          Symmetry dimensions: $symmetries
+          Symmetry dimensions: $symmetry_dims
           
           Suppress this message by verbose=false
           Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
@@ -75,7 +75,7 @@ function Blob(sz...;
          $com
          """
 
-        return RealBlob(a, nn, w, T(contrast), sz, ose, cse, symmetries,)
+        return RealBlob(a, nn, w, T(contrast), sz, ose, cse, symmetry_dims,)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)
@@ -117,7 +117,7 @@ function Blob(sz...;
          $com
          """
 
-        return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
+        return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetry_dims, diagonal_symmetry)
     end
 end
 Blob(sz::Tuple; kw...) = Blob(sz...; kw...)
