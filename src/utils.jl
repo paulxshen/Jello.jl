@@ -21,10 +21,12 @@ function se(rminfill, rminvoid, d=2)
 end
 function apply(symmetry_dims, r)
     if !isempty(symmetry_dims)
-        r += reverse(r, dims=symmetry_dims)
-        r /= 2
-        # elseif diagonal_symmetry == true
-        #     r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+        for d = symmetry_dims
+            r += reverse(r, dims=Int.(d))
+            r /= 2
+            # elseif diagonal_symmetry == true
+            #     r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+        end
     end
     r
 end

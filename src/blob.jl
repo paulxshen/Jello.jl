@@ -15,11 +15,14 @@ Args
 - `symmetry_dims`: symmetry dimensions
 """
 function Blob(sz...;
-    nbasis=4, alg=:interpolation, init=nothing, contrast=1, T=Float32,
+    lmin=nothing, nbasis=4, alg=:interpolation, init=nothing, contrast=1, T=Float32,
     rmin=nothing, rminfill=rmin, rminvoid=rmin,
     symmetry_dims=[], diagonal_symmetry=false,
     verbose=true)
     d = length(sz)
+    if lmin != nothing
+        nbasis = round.(Int, sz ./ lmin)
+    end
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
     end
@@ -43,7 +46,7 @@ function Blob(sz...;
         elseif isa(init, Number)
             T(init) * ones(T, nbasis...)
         else
-            T.(init)
+            imresize(T.(init), nbasis)
         end
 
         t = map(CartesianIndices(Tuple(sz))) do i
