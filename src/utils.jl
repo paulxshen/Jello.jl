@@ -54,7 +54,7 @@ function apply(ose, cse, r)
     end
     r .* (m .== m0) + (m - m0 .> 0)
 end
-function imresize(a, sz)
-
+function resize(a, sz)
+    imresize(a, sz, method=ImageTransformations.Lanczos4OpenCV())
 end
 

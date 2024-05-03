@@ -46,7 +46,7 @@ function Blob(sz...;
         elseif isa(init, Number)
             T(init) * ones(T, nbasis...)
         else
-            imresize(T.(init), nbasis)
+            resize(T.(init), nbasis)
         end
 
         t = map(CartesianIndices(Tuple(sz))) do i
