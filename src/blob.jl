@@ -1,3 +1,4 @@
+footer = "Jello.jl 2024 (c) Paul Shen at Luminescent AI\n<pxshen@alumni.stanford.edu>"
 """
     Blob(sz...; nbasis=4, contrast=1, alg=:interpolation, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetry_dims=[])
     (m::RealBlob)()
@@ -37,12 +38,12 @@ function Blob(sz...;
           Symmetry dimensions: $symmetry_dims
           
           Suppress this message by verbose=false
-          Jello.jl is created by Paul Shen <pxshen@alumni.stanford.edu>
+          $footer
           """
 
     if alg == :interpolation
         a = if isnothing(init)
-            randn(T, nbasis...)
+            rand(T, nbasis...)
         elseif isa(init, Number)
             T(init) * ones(T, nbasis...)
         else
@@ -69,15 +70,16 @@ function Blob(sz...;
 
         ose, cse = se(rminfill, rminvoid)
 
-        verbose && @info """
-         Blob configs
-         
-         Geometry generation 
-         - algorithm: real space interpolation
-         - interpolation grid: $nbasis
-         $com
-         """
-
+        if verbose
+            @info """
+        Blob configs
+        
+        Geometry generation 
+        - algorithm: real space interpolation
+        - interpolation grid: $nbasis
+        $com
+        """
+        end
         return RealBlob(a, nn, w, T(contrast), sz, ose, cse, symmetry_dims,)
     elseif alg == :fourier
         if isnothing(init)
@@ -111,14 +113,16 @@ function Blob(sz...;
             cse = circle(rminvoid, d) |> centered
         end
 
-        verbose && @info """
-         Blob configs
-         
-         Geometry generation 
-         - algorithm: Fourier basis
-         - Fourier k-space size (# of Fourier basis per dimension): $nbasis
-         $com
-         """
+        if verbose
+            @info """
+        Blob configs
+        
+        Geometry generation 
+        - algorithm: Fourier basis
+        - Fourier k-space size (# of Fourier basis per dimension): $nbasis
+        $com
+        """
+        end
 
         return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetry_dims, diagonal_symmetry)
     end

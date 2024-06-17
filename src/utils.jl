@@ -55,6 +55,9 @@ function apply(ose, cse, r)
     r .* (m .== m0) + (m - m0 .> 0)
 end
 function resize(a, sz)
-    imresize(a, sz, method=ImageTransformations.Lanczos4OpenCV())
+    if length(sz) == 1
+        return imresize(a, sz, method=ImageTransformations.Lanczos4OpenCV())
+    end
+    imresize(a, sz)
 end
 

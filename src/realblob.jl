@@ -30,7 +30,9 @@ function (m::RealBlob)()
     if v != 0
         r /= v
     end
-    r = NNlib.σ.(contrast * r)
+    r = tanh.(contrast * r)
+    r = max.(r, 0)
+    r = min.(r, 1)
     r = apply(ose, cse, r)
 end
 
