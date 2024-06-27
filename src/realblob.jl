@@ -26,13 +26,13 @@ function (m::RealBlob)()
     # imresize!(r, a)
     # r = copy(r)
     r = apply(symmetry_dims, r)
+    T=eltype(a)
+    r-=T(0.5)
     v = mean(abs.(r))
     if v != 0
         r /= v
     end
-    r = tanh.(contrast * r)
-    r = max.(r, 0)
-    r = min.(r, 1)
+    r =NNlib.σ.(contrast * r)
     r = apply(ose, cse, r)
 end
 
