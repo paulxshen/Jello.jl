@@ -22,10 +22,14 @@ end
 function apply(symmetry_dims, r)
     if !isempty(symmetry_dims)
         for d = symmetry_dims
+            if d=="diag"
+                    r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+            elseif d=="antidiag"
+                    r = (r + reverse(r, dims=1)') / 2
+            else
             r += reverse(r, dims=Int.(d))
             r /= 2
-            # elseif diagonal_symmetry == true
-            #     r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+        end
         end
     end
     r
