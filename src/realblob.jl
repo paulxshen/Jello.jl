@@ -8,7 +8,7 @@ struct RealBlob
     cse
     symmetry_dims
 end
-@functor RealBlob (a,)
+@functor RealBlob (a, w)
 Base.size(m::RealBlob) = m.sz
 
 
@@ -21,18 +21,19 @@ function (m::RealBlob)()
     #         a[k...] * w
     #     end
     # end
-    r = sum([getindex.((a,), k) .* w for (k, w) = zip(nn, w)])
+    T = typeof(a)
+    r = sum([T(getindex.((Array(a),), k)) .* w for (k, w) = zip(nn, w)])
     # r = Buffer(a, sz)
     # imresize!(r, a)
     # r = copy(r)
     r = apply(symmetry_dims, r)
-    T=eltype(a)
-    r-=T(0.5)
+    T = eltype(a)
+    r -= T(0.5)
     v = mean(abs.(r))
     if v != 0
         r /= v
     end
-    r =NNlib.σ.(contrast * r)
+    r = NNlib.σ.(contrast * r)
     r = apply(ose, cse, r)
 end
 
