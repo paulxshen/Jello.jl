@@ -9,6 +9,8 @@ struct RealBlob
     symmetry_dims
 end
 @functor RealBlob (a, w)
+# Zygote.Params(m::RealBlob) = Params([m.a])
+Flux.trainable(m::RealBlob) = (; a=m.a)
 Base.size(m::RealBlob) = m.sz
 
 
