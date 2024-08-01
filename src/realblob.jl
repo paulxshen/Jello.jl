@@ -1,4 +1,4 @@
-struct RealBlob
+mutable struct RealBlob
     a::AbstractArray
     nn
     w
@@ -8,8 +8,10 @@ struct RealBlob
     cse
     symmetry_dims
 end
-@functor RealBlob (a, w)
-# Zygote.Params(m::RealBlob) = Params([m.a])
+@functor RealBlob (a,)
+Zygote.Params(m::RealBlob) = Params([m.a])
+using Zygote
+# Zygote.params
 Flux.trainable(m::RealBlob) = (; a=m.a)
 Base.size(m::RealBlob) = m.sz
 
@@ -24,13 +26,20 @@ function (m::RealBlob)()
     #     end
     # end
     T = typeof(a)
-    r = sum([T(getindex.((Array(a),), k)) .* w for (k, w) = zip(nn, w)])
+    # r = sum([T(getindex.((Array(a),), k)) .* w for (k, w) = zip(nn, w)])
+    r = map(CartesianIndices(Tuple(sz))) do i
+        i = Tuple(i)
+        i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
+        i = Float32.(i)
+        interp(a, i)
+    end
+
     # r = Buffer(a, sz)
     # imresize!(r, a)
     # r = copy(r)
     r = apply(symmetry_dims, r)
     T = eltype(a)
-    r -= T(0.5)
+    r = r - T(0.5)
     v = mean(abs.(r))
     if v != 0
         r /= v

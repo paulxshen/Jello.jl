@@ -22,7 +22,7 @@ function Blob(sz...;
     verbose=true)
     d = length(sz)
     if lmin != nothing
-        nbasis = round.(Int, sz ./ lmin)
+        nbasis = round.(Int, sz ./ lmin) + 1
     end
     if length(nbasis) == 1
         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
@@ -60,14 +60,14 @@ function Blob(sz...;
             nn, w
         end
         l = LinearIndices(a)
-        nn = [
-            map(getindex.(getindex.(t, 1), i)) do c
-                c = min.(c, size(a))
-                l[c...]
-            end for i = 1:2^d
-        ]
-        w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
-
+        # nn = [
+        #     map(getindex.(getindex.(t, 1), i)) do c
+        #         c = min.(c, size(a))
+        #         l[c...]
+        #     end for i = 1:2^d
+        # ]
+        # w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
+        nn = w = 0
         ose, cse = se(rminfill, rminvoid)
 
         if verbose
