@@ -50,16 +50,25 @@ function Blob(sz...;
             resize(T.(init), nbasis)
         end
 
-        t = map(CartesianIndices(Tuple(sz))) do i
-            i = collect(T.(1 .+ (Tuple(i) .- 1) .* (size(a) .- 1) ./ (sz .- 1)))
-            nn = collect(Base.product(range.(floor.(Int, i), _ceil.(i))...))
-
-            w = map(nn) do k
-                prod(1 .- abs.(i .- k))
-            end
-            nn, w
+        d = ndims(a)
+        n = length(a)
+        N = prod(sz)
+        # A = zeros(Int, 3, 2^d * N)
+        J = LinearIndices(a)
+        I = LinearIndices(sz)
+        global A = map(CartesianIndices(Tuple(sz))) do i
+            _i = I[i]
+            i = Tuple(i)
+            i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
+            i = Float32.(i)
+            p = floor(i)
+            q = ceil(i)
+            stack(vec([Int32[_i, J[j...], round(1000prod(1 - abs.(i - j)))] for j = Base.product([p[i] == q[i] ? (p[i],) : (p[i], q[i]) for i = 1:length(i)]...)]))
         end
-        l = LinearIndices(a)
+        A = reduce(hcat, vec(A))'
+        i, j, v = eachcol(A)
+        A = sparse(i, j, v)
+        a = vec(a)
         # nn = [
         #     map(getindex.(getindex.(t, 1), i)) do c
         #         c = min.(c, size(a))
@@ -80,7 +89,7 @@ function Blob(sz...;
         $com
         """
         end
-        return RealBlob(a, nn, w, T(contrast), sz, ose, cse, symmetry_dims,)
+        return RealBlob(a, A, T(contrast), sz, ose, cse, symmetry_dims,)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)

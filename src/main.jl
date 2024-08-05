@@ -1,4 +1,4 @@
-using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Flux, Zygote, Functors, ImageMorphology, Porcupine, ChainRulesCore, NNlib, ImageTransformations
+using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Flux, Zygote, Functors, ImageMorphology, Porcupine, ChainRulesCore, NNlib, ImageTransformations
 # using ImageTransformations
 # using Zygote: Buffer
 include("utils.jl")

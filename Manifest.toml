@@ -2,7 +2,7 @@
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "80600d793d8f21694e0709f8954cc6c7c21f504a"
+project_hash = "81fec3c7b610158ffe1b3819c6764a124a64d68c"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -794,7 +794,7 @@ version = "0.2.2"
 deps = ["ArrayPadding", "ChainRulesCore", "DataStructures", "Functors", "LinearAlgebra", "Statistics", "UnPack", "Zygote"]
 path = "C:\\Users\\pxshe\\OneDrive\\Desktop\\Porcupine.jl"
 uuid = "3b53a3d7-3f34-4bba-8df2-4717a8b1e972"
-version = "0.1.33"
+version = "0.1.37"
 
 [[deps.PrecompileTools]]
 deps = ["Preferences"]

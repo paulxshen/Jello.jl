@@ -1,7 +1,6 @@
 mutable struct RealBlob
     a::AbstractArray
-    nn
-    w
+    A
     contrast::Real
     sz
     ose
@@ -17,7 +16,7 @@ Base.size(m::RealBlob) = m.sz
 
 
 function (m::RealBlob)()
-    @unpack a, contrast, nn, w, sz, ose, cse, symmetry_dims, = m
+    @unpack a, contrast, A, sz, ose, cse, symmetry_dims, = m
     # itp = interpolate(a, BSpline(Linear()))
     # a = σ.(a)
     # r = map(nn) do (k, w)
@@ -27,12 +26,14 @@ function (m::RealBlob)()
     # end
     T = typeof(a)
     # r = sum([T(getindex.((Array(a),), k)) .* w for (k, w) = zip(nn, w)])
-    r = map(CartesianIndices(Tuple(sz))) do i
-        i = Tuple(i)
-        i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
-        i = Float32.(i)
-        interp(a, i)
-    end
+
+    r = reshape(A * a / 1000, sz)
+    # r = map(CartesianIndices(Tuple(sz))) do i
+    #     i = Tuple(i)
+    #     i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
+    #     i = Float32.(i)
+    #     interp(a, i)
+    # end
 
     # r = Buffer(a, sz)
     # imresize!(r, a)
