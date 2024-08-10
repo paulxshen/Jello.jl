@@ -1,4 +1,4 @@
-using Test, Random, Flux, GLMakie, LinearAlgebra, StatsBase
+using Random, Flux, LinearAlgebra
 using Flux: gradient, withgradient
 using AbbreviatedStackTraces
 # using Jello

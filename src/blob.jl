@@ -1,6 +1,6 @@
 footer = "Jello.jl 2024 (c) Paul Shen at Luminescent AI\n<pxshen@alumni.stanford.edu>"
 """
-    Blob(sz...; nbasis=4, contrast=1, alg=:interpolation, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetry_dims=[])
+    Blob(sz...; nbasis=4, contrast=1, alg=:interpolation, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[])
     (m::RealBlob)()
 
 Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `RealBlob` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly on order of `edge length / nbasis`. contrast controls the edge sharpness. Setting `rmin` applies additional morphological filtering which eliminates smaller features and radii
@@ -13,12 +13,12 @@ Args
 - `rmin`: minimal radii during morphological filtering, can also be `nothing` (no filtering) or `:auto` (automatically set wrt `nbasis`)
 - `rminfill`: same as `rmin` but only applied to fill (bright) features
 - `rminvoid`: ditto
-- `symmetry_dims`: symmetry dimensions
+- `symmetries`: symmetry dimensions
 """
 function Blob(sz...;
     lmin=nothing, nbasis=4, alg=:interpolation, init=nothing, contrast=1, T=Float32,
     rmin=nothing, rminfill=rmin, rminvoid=rmin,
-    symmetry_dims=[], diagonal_symmetry=false,
+    symmetries=[], diagonal_symmetry=false,
     verbose=true)
     d = length(sz)
     if lmin != nothing
@@ -35,7 +35,7 @@ function Blob(sz...;
           - min fill radii: $rminfill
           - min void radii: $rminvoid
           
-          Symmetry dimensions: $symmetry_dims
+          Symmetry dimensions: $symmetries
           
           Suppress this message by verbose=false
           $footer
@@ -56,7 +56,7 @@ function Blob(sz...;
         # A = zeros(Int, 3, 2^d * N)
         J = LinearIndices(a)
         I = LinearIndices(sz)
-        global A = map(CartesianIndices(Tuple(sz))) do i
+        A = map(CartesianIndices(Tuple(sz))) do i
             _i = I[i]
             i = Tuple(i)
             i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
@@ -67,7 +67,7 @@ function Blob(sz...;
         end
         A = reduce(hcat, vec(A))'
         i, j, v = eachcol(A)
-        A = sparse(i, j, v)
+        A = sparse(i, j, T(v / 1000))
         a = vec(a)
         # nn = [
         #     map(getindex.(getindex.(t, 1), i)) do c
@@ -89,7 +89,7 @@ function Blob(sz...;
         $com
         """
         end
-        return RealBlob(a, A, T(contrast), sz, ose, cse, symmetry_dims,)
+        return RealBlob(a, A, T(contrast), sz, ose, cse, symmetries,)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)
@@ -133,7 +133,7 @@ function Blob(sz...;
         """
         end
 
-        return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetry_dims, diagonal_symmetry)
+        return FourierBlob(ar, ai, T(contrast), sz, ose, cse, symmetries, diagonal_symmetry)
     end
 end
 Blob(sz::Tuple; kw...) = Blob(sz...; kw...)

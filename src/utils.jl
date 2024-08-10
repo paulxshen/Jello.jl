@@ -19,17 +19,20 @@ function se(rminfill, rminvoid, d=2)
     end
     ose, cse
 end
-function apply(symmetry_dims, r)
-    if !isempty(symmetry_dims)
-        for d = symmetry_dims
-            if d=="diag"
-                    r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
-            elseif d=="antidiag"
-                    r = (r + reverse(r, dims=1)') / 2
+function apply(symmetries, r)
+    if !isempty(symmetries)
+        for d = symmetries
+            if d == "diagonal"
+                r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
+            elseif d == "anti-diagonal"
+                r = (r + reverse(r, dims=1)') / 2
+            elseif d == "inversion"
+                r += reverse(r, dims=Tuple(1:ndims(r)))
+                r /= 2
             else
-            r += reverse(r, dims=Int.(d))
-            r /= 2
-        end
+                r += reverse(r, dims=Int.(d))
+                r /= 2
+            end
         end
     end
     r
@@ -45,9 +48,10 @@ function apply(σ, contrast::Real, r)
 end
 function apply(ose, cse, r)
     isnothing(ose) && isnothing(cse) && return r
-    m = m0 = 0
+    A = B = 0
     ignore_derivatives() do
-        m = r .> 0.5
+        T = typeof(r)
+        m = Array(r) .> 0.5
         m0 = m
         if !isnothing(ose)
             m = opening(m, ose)
@@ -55,8 +59,11 @@ function apply(ose, cse, r)
         if !isnothing(cse)
             m = closing(m, cse)
         end
+        A = T(m .== m0)
+        B = T(m .> m0)
     end
-    r .* (m .== m0) + (m - m0 .> 0)
+    @show size(r), size(A), size(B), size(ose), size(cse)
+    r .* A + B
 end
 function resize(a, sz)
     if length(sz) == 1

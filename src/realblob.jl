@@ -1,13 +1,13 @@
-mutable struct RealBlob
+struct RealBlob
     a::AbstractArray
     A
     contrast::Real
     sz
     ose
     cse
-    symmetry_dims
+    symmetries
 end
-@functor RealBlob (a,)
+@functor RealBlob (a, A)
 Zygote.Params(m::RealBlob) = Params([m.a])
 using Zygote
 # Zygote.params
@@ -16,7 +16,7 @@ Base.size(m::RealBlob) = m.sz
 
 
 function (m::RealBlob)()
-    @unpack a, contrast, A, sz, ose, cse, symmetry_dims, = m
+    @unpack a, contrast, A, sz, ose, cse, symmetries, = m
     # itp = interpolate(a, BSpline(Linear()))
     # a = σ.(a)
     # r = map(nn) do (k, w)
@@ -24,10 +24,16 @@ function (m::RealBlob)()
     #         a[k...] * w
     #     end
     # end
-    T = typeof(a)
     # r = sum([T(getindex.((Array(a),), k)) .* w for (k, w) = zip(nn, w)])
 
-    r = reshape(A * a / 1000, sz)
+    T = eltype(a)
+    # A = ignore_derivatives() do
+    #     A / T(1000)
+    # end
+    A, contrast = ignore_derivatives() do
+        A, contrast
+    end
+    r = reshape((A) * a, sz)
     # r = map(CartesianIndices(Tuple(sz))) do i
     #     i = Tuple(i)
     #     i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
@@ -38,8 +44,7 @@ function (m::RealBlob)()
     # r = Buffer(a, sz)
     # imresize!(r, a)
     # r = copy(r)
-    r = apply(symmetry_dims, r)
-    T = eltype(a)
+    r = apply(symmetries, r)
     r = r - T(0.5)
     v = mean(abs.(r))
     if v != 0
@@ -51,5 +56,5 @@ end
 
 
 # function RealBlob(m::RealBlob, sz...; contrast=m.contrast,)
-#     RealBlob(m.ar, m.ai, contrast, sz, m.ose, m.cse, m.symmetry_dims, m.diagonal_symmetry)
+#     RealBlob(m.ar, m.ai, contrast, sz, m.ose, m.cse, m.symmetries, m.diagonal_symmetry)
 # end
