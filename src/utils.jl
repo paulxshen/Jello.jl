@@ -62,6 +62,9 @@ function apply(ose, cse, r)
         A = mo .| mc
         B = mc .> m0
         B = B .& (.!A)
+
+        A = T(A)
+        B = T(B)
         # A = T(m .== m0)
         # B = T(m .> m0)
     end
