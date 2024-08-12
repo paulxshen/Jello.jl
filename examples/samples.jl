@@ -7,10 +7,10 @@ l = 50
 
 Random.seed!(1)
 alg = :interpolation
-lmin = 10
-contrast = 1
-rmin = lmin / 4
-m = Blob(l, l; alg, lmin, contrast)
+lmin = 4
+contrast = 10
+rmin = lmin / 2
+m = Blob(l, l; init=1, alg, lmin, rmin, contrast)
 heatmap(fig2d[1, 1], m(); axis=(; title="$l x $l\nalg = :$alg\ncontrast = $contrast\nrmin = $rmin"))
 fig2d |> display
 

@@ -8,4 +8,4 @@ l = 100
 Random.seed!(1)
 contrast = 1
 rmin = nothing
-m = Blob(l, l; contrast)
+m = Blob(l, l; contrast, init=1)

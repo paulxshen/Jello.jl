@@ -54,15 +54,18 @@ function apply(ose, cse, r)
         m = Array(r) .> 0.5
         m0 = m
         if !isnothing(ose)
-            m = opening(m, ose)
+            mo = opening(m, ose)
         end
         if !isnothing(cse)
-            m = closing(m, cse)
+            mc = .!(closing(m, cse))
         end
-        A = T(m .== m0)
-        B = T(m .> m0)
+        A = mo .| mc
+        B = mc .> m0
+        B = B .& (.!A)
+        # A = T(m .== m0)
+        # B = T(m .> m0)
     end
-    @show size(r), size(A), size(B), size(ose), size(cse)
+    # @show size(r), size(A), size(B), size(ose), size(cse)
     r .* A + B
 end
 function resize(a, sz)

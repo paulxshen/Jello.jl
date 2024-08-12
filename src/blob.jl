@@ -49,6 +49,7 @@ function Blob(sz...;
         else
             resize(T.(init), nbasis)
         end
+        a += 0.1randn(T, size(a))
 
         d = ndims(a)
         n = length(a)

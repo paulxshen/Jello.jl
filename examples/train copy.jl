@@ -18,7 +18,7 @@ cpu(x) = isempty(propertynames(x)) ? x : fmap(cpu, x)
 gpu(d::Dictlike) = fmap(gpu, d)
 cpu(d::Dictlike) = fmap(cpu, d)
 
-m = Blob(4, 4; lmin=1) |> gpu
+m = Blob(4, 4; init=1, lmin=1) |> gpu
 g = gradient(m) do m
     sum(m())
 end
