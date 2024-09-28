@@ -12,7 +12,7 @@ end
 Base.size(m::FourierBlob) = m.sz
 
 """
-    FourierBlob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false)
+    FourierBlob(sz...; nbasis=4, contrast=1, T=Float32, rmin=nothing, rsolid=rmin, rvoid=rmin, symmetries=[], diagonal_symmetry=false)
     (m::FourierBlob)()
 
 Functor for generating length scale controlled geometry mask, represented as array of values between 0 to 1.0. `FourierBlob` constructor makes the callable functor which can be passed as the model parameter to `Flux.jl`. Caliing it yields geometry whose length, spacing and radii are roughly on order of `edge length / nbasis`. contrast controls the edge sharpness. Setting `rmin` applies additional morphological filtering which eliminates smaller features and radii
@@ -22,10 +22,10 @@ Args
 - `contrast`: edge sharpness
 - `nbasis`: # of Fourier basis along each dimension
 - `rmin`: minimal radii during morphological filtering, can also be `nothing` (no filtering) or `:auto` (automatically set wrt `nbasis`)
-- `rminfill`: same as `rmin` but only applied to fill (bright) features
-- `rminvoid`: ditto
+- `rsolid`: same as `rmin` but only applied to fill (bright) features
+- `rvoid`: ditto
 """
-# function FourierBlob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rminfill=rmin, rminvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
+# function FourierBlob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rsolid=rmin, rvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
 #     if length(nbasis) == 1
 #         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
 #     end

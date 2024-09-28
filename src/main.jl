@@ -2,7 +2,8 @@ using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArray
 # using ImageTransformations
 # using Zygote: Buffer
 include("utils.jl")
-include("realblob.jl")
+include("convblob.jl")
+include("interpblob.jl")
 include("fourierblob.jl")
 include("blob.jl")
 # m = Blob(4, 4)
