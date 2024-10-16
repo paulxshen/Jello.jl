@@ -17,41 +17,41 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lmin=0, lvoid=0, lsolid=0,
+    vvoid=0, vsolid=1,
     symmetries=[], alg=:interp, init=nothing,
-    frame=0,
+        ratio = 1,frame=0,
     F=Float32, T=F, verbose=false)
 
     N = length(sz)
-    # lmin, lsolid, lvoid = round.(Int, [lmin, lsolid, lvoid])
     lmin = max(lmin, lsolid, lvoid)
     lmin /= 1.2sqrt(N)
     lmin = max(1, lmin)
 
-    rmin = round((lmin - 1) / 2 + 0.01)
+    rmin = round(Int, (lmin - 1) / 2 + 0.01)
     if isa(frame, Number)
-        margin = maximum(round.((lsolid, lvoid)))
+        margin = maximum(round.(Int, (lsolid, lvoid)))
         frame = fill(frame, sz + 2margin)
     end
 
     if alg == :interp
-        psz = round.(Int, sz ./ lmin) + 1
+        paramsize = round.(Int, sz ./ lmin) + 1
     elseif alg == :conv
-        rfilter = round(1.6rmin)
-        psz = sz + 2rfilter
+        rfilter = round(Int, 1.6rmin)
+        paramsize = sz + 2rfilter
 
     end
 
-    da = 0.02
+    da = 0.1
     if isnothing(init)
-        a = da * randn(psz)
+        a = 0.5 + da * randn(paramsize)
     end
     if isa(init, Number)
-        a = fill((-da) + 2 * da * init, psz)
+        a = fill(0.5 + 2da * (init - 0.5), paramsize)
     end
 
     if alg == :conv
         if isa(init, Number)
-            a += 0.5randn(psz) * rmin^(N / 2)
+            a += 0.5randn(paramsize) * rmin^(N / 2)
         end
         a = T.(a)
         n = 2rfilter + 1
@@ -60,36 +60,30 @@ function Blob(sz::Base.AbstractVecOrTuple;
         return ConvBlob(a, conv, rmin, symmetries)
     elseif alg == :interp
         if isa(init, Number)
-            # a += -0.9sign(init) * rand(T, psz)
+            # a += -0.9sign(init) * rand(T, paramsize)
         end
         a = T.(a)
-
-        #     resize(T.(init), nbasis)
-        # end
 
         # n = length(a)
         # N = prod(sz)
         # A = zeros(Int, 3, 2^d * N)
         # if lmin == 1
-        if any(sz .< psz)
-            A = nothing
-        else
-            J = LinearIndices(a)
-            I = LinearIndices(sz)
-            A = map(CartesianIndices(Tuple(sz))) do i
-                _i = I[i]
-                i = Tuple(i)
-                i = 1 + (i - 1) .* (size(a) - 1) ./ (sz - 1)
-                i = Float32.(i)
-                p = floor(i)
-                q = ceil(i)
-                stack(vec([Int32[_i, J[j...], round(1000prod(1 - abs.(i - j)))] for j = Base.product([p[i] == q[i] ? (p[i],) : (p[i], q[i]) for i = 1:length(i)]...)]))
-            end
-            A = reduce(hcat, vec(A))'
-            i, j, v = eachcol(A)
-            A = sparse(i, j, T(v / 1000))
-            a = vec(a)
+        supersize = ratio * sz
+        J = LinearIndices(a)
+        I = LinearIndices(supersize)
+        A = map(CartesianIndices(Tuple(supersize))) do i
+            _i = I[i]
+            i = Tuple(i)
+            i = 1 + (i - 1) .* (paramsize - 1) ./ (supersize - 1)
+            i = Float32.(i)
+            p = floor.(Int, i)
+            q = ceil.(Int, i)
+            stack(vec([Int32[_i, J[j...], round.(Int, 1000prod(1 - abs.(i - j)))] for j = Base.product([p[i] == q[i] ? (p[i],) : (p[i], q[i]) for i = 1:length(i)]...)]))
         end
+        A = reduce(hcat, vec(A))'
+        i, j, v = eachcol(A)
+        A = sparse(i, j, convert.(T, v / 1000))
+        a = vec(a)
         # nn = [
         #     map(getindex.(getindex.(t, 1), i)) do c
         #         c = min.(c, size(a))
@@ -98,8 +92,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         # ]
         # w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
         # nn = w = 0
-
-        return InterpBlob(a, A, sz, lmin, lvoid, lsolid, frame, symmetries,)
+        vvoid, vsolid = T(vvoid), T(vsolid)
+        return InterpBlob(a, A, sz, lmin, lvoid, lsolid, vvoid, vsolid, imresize(frame; ratio) .> 0.5, symmetries, ratio)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)

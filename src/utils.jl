@@ -9,7 +9,7 @@ function conic(r, d)
     a /= sum(a)
 end
 function se(r, d=2)
-    centered(circle(round(r), d))
+    centered(circle(round(Int, r), d))
 end
 function apply(symmetries, r)
     if !isempty(symmetries)
@@ -35,11 +35,9 @@ function apply(symmetries, r)
     r
 end
 function step(a::AbstractArray{T}, α::Real) where {T}
-    m = a .> 0
+    m = a .> 0.5
     α = T(α)
-    a = α / 2 * tanh.(a) + (m) * (1 - α / 2) + (1 - m) * (α / 2)
-    # a = min.(1, a)
-    # a = max.(-1, a)
+    a = α / 2 * tanh.(a - T(0.5)) + (m) * (1 - α / 2) + (1 - m) * (α / 2)
 end
 
 # function open(a, r)
@@ -66,8 +64,8 @@ function smooth(a, α, lvoid=0, lsolid=0, frame=nothing, lmin=0)
         return a
     end
 
-    rvoid = round(lvoid / 2 + 0.01)
-    rsolid = round(lsolid / 2 + 0.01)
+    rvoid = round(Int, lvoid / 2 + 0.01)
+    rsolid = round(Int, lsolid / 2 + 0.01)
 
     T = typeof(a)
     m0 = Array(a) .> 0.5
@@ -81,7 +79,7 @@ function smooth(a, α, lvoid=0, lsolid=0, frame=nothing, lmin=0)
         #         m = opening(m, se(ro, ndims(a)))
         #     end
         if !isnothing(frame)
-            o = fill(round(lmin) + 1, ndims(m))
+            o = fill(round(Int, lmin) + 1, ndims(m))
             roi = range.(o, o + size(m) - 1)
             _m = copy(frame)
             _m[roi...] = m
@@ -109,4 +107,3 @@ function resize(a, sz)
     end
     imresize(a, sz)
 end
-

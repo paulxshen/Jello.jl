@@ -5,25 +5,34 @@ struct InterpBlob
     lmin
     lvoid
     lsolid
+    vvoid
+    vsolid
     frame
     symmetries
+    ratio
 end
 @functor InterpBlob (a, A)
-Zygote.Params(m::InterpBlob) = Params([m.a])
 Flux.trainable(m::InterpBlob) = (; a=m.a)
 # Base.size(m::InterpBlob) = size(m.a)
 
-function (m::InterpBlob)(sharpness::Real=0.99, lvoid=m.lvoid, lsolid=m.lsolid,)
-    @unpack a, A, symmetries, sz, lmin, frame = m
+function _InterpBlob(m, f, vvoid=m.vvoid, vsolid=m.vsolid, sharpness::Real=0.99)
+    #  vvoid::Real,vsolid,sharpness::Real=0.99)
+    @unpack a, A, symmetries, sz, lmin, frame, ratio, lvoid, lsolid = m
     T = eltype(a)
     α = T(1 - sharpness)
-
-    if !isnothing(A)
-        a = reshape((A) * a, sz)
+    A = ignore_derivatives() do
+        A
     end
+    a = reshape((A) * a, ratio * sz)
     a = apply(symmetries, a)
     a = step(a, α)
 
-    margin = Int.((size(frame, 1) - sz[1]) / 2)
-    a = smooth(a, α, lvoid, lsolid, frame, margin)
+    margin = Int.((size(frame, 1) - ratio * sz[1]) / 2)
+    a = smooth(a, α, ratio * lvoid, ratio * lsolid, frame, margin)
+    a = vvoid + (vsolid - vvoid) * a
+    # if !withtensor
+    f(a, ratio)
 end
+
+(m::InterpBlob)(f::Function, args...) = _InterpBlob(m, f, args...)
+(m::InterpBlob)(args...) = _InterpBlob(m, downsample, args...)

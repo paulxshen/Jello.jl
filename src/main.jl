@@ -1,16 +1,16 @@
-using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Flux, Zygote, Functors, ImageMorphology, Porcupine, ChainRulesCore, NNlib, ImageTransformations
-# using ImageTransformations
+using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Flux, Functors, Porcupine, ChainRulesCore, Images
+using Porcupine: keys, values, trim
 # using Zygote: Buffer
 include("utils.jl")
-include("convblob.jl")
+# include("convblob.jl")
 include("interpblob.jl")
-include("fourierblob.jl")
+# include("fourierblob.jl")
 include("blob.jl")
 # m = Blob(4, 4)
 # g = gradient(m) do m
 #     sum(m())
 # end
 # g[m]
-# g = gradient(Params([m.a])) do
-#     sum(m())
-# end
+
+# using Pkg
+# pkg"dev C:\Users\pxshe\OneDrive\Desktop\Porcupine.jl;dev C:\Users\pxshe\OneDrive\Desktop\ArrayPadding.jl; up"
