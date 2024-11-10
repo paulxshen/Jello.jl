@@ -1,7 +1,18 @@
 _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
-function circle(r, d)
-    r = round(Int, r)
-    [norm(v) <= r + 0.001 for v = Base.product(fill(-r:r, d)...)] # circle
+function circle(r, d=2)
+    n = round(Int, r)
+    [
+        begin
+            d = norm(v) - r
+            if d < -0.5
+                1
+            elseif d > 0.5
+                0
+            else
+                0.5 - d
+            end
+        end for v = Base.product(fill(-n:n, d)...)
+    ] # circle
 end
 function conic(r, d)
     r = round(Int, r)
@@ -106,4 +117,11 @@ function resize(a, sz)
         return imresize(a, sz, method=ImageTransformations.Lanczos4OpenCV())
     end
     imresize(a, sz)
+end
+function ica(R, r, d)
+    if R == 0 || r == 0
+        return 0
+    end
+    r^2 * acos((d^2 + r^2 - R^2) / (2d * r)) + R^2 * acos((d^2 + R^2 - r^2) / (2d * R)) - sqrt((R + r + d) * (R + r - d) * (R - r + d) * (r + d - R)) / 2
+
 end

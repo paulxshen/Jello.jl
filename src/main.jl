@@ -1,7 +1,8 @@
 using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Flux, Functors, Porcupine, ChainRulesCore, Images
 using Porcupine: keys, values, trim
-# using Zygote: Buffer
+using Zygote: Buffer
 include("utils.jl")
+include("loss.jl")
 # include("convblob.jl")
 include("interpblob.jl")
 # include("fourierblob.jl")

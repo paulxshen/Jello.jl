@@ -16,15 +16,15 @@ Keyword Args
 - `symmetries`: symmetry dimensions
 """
 function Blob(sz::Base.AbstractVecOrTuple;
-    lmin=0, lvoid=0, lsolid=0,
+    lvoid=0, lsolid=0,
     vvoid=0, vsolid=1,
     symmetries=[], alg=:interp, init=nothing,
-        ratio = 1,frame=0,
+    ratio=1, frame=0, margin=0,
     F=Float32, T=F, verbose=false)
 
     N = length(sz)
-    lmin = max(lmin, lsolid, lvoid)
-    lmin /= 1.2sqrt(N)
+    lmin = max(lsolid, lvoid)
+    lmin /= sqrt(N)
     lmin = max(1, lmin)
 
     rmin = round(Int, (lmin - 1) / 2 + 0.01)
@@ -32,6 +32,9 @@ function Blob(sz::Base.AbstractVecOrTuple;
         margin = maximum(round.(Int, (lsolid, lvoid)))
         frame = fill(frame, sz + 2margin)
     end
+    frame = T(frame)
+    o = fill(ratio * margin + 1, N)
+    frame = imresize(frame; ratio) .> 0.5
 
     if alg == :interp
         paramsize = round.(Int, sz ./ lmin) + 1
@@ -41,33 +44,25 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     end
 
-    da = 0.1
+    da = 0.5
     if isnothing(init)
         a = 0.5 + da * randn(paramsize)
     end
     if isa(init, Number)
         a = fill(0.5 + 2da * (init - 0.5), paramsize)
+        a += 0.01randn(paramsize)
     end
+    a = T.(a)
 
-    if alg == :conv
-        if isa(init, Number)
-            a += 0.5randn(paramsize) * rmin^(N / 2)
-        end
-        a = T.(a)
-        n = 2rfilter + 1
-        conv = Conv((n, n), 1 => 1)
-        conv.weight .= conic(rfilter, 2)
-        return ConvBlob(a, conv, rmin, symmetries)
-    elseif alg == :interp
-        if isa(init, Number)
-            # a += -0.9sign(init) * rand(T, paramsize)
-        end
-        a = T.(a)
-
-        # n = length(a)
-        # N = prod(sz)
-        # A = zeros(Int, 3, 2^d * N)
-        # if lmin == 1
+    dl = 1 / ratio
+    Rsolid = lsolid / 2 / dl
+    Rvoid = lvoid / 2 / dl
+    R = 4
+    ker = circle(R)
+    # @show A = sum(ker)
+    A = π * R^2
+    levels = [0, ica(R, Rsolid, Rsolid - 0.5), A - ica(R, Rvoid, Rvoid + 0.5), A]
+    if alg == :interp
         supersize = ratio * sz
         J = LinearIndices(a)
         I = LinearIndices(supersize)
@@ -93,7 +88,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         # w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
         # nn = w = 0
         vvoid, vsolid = T(vvoid), T(vsolid)
-        return InterpBlob(a, A, sz, lmin, lvoid, lsolid, vvoid, vsolid, imresize(frame; ratio) .> 0.5, symmetries, ratio)
+        return InterpBlob(a, A, sz, lmin, lvoid, lsolid, vvoid, vsolid, frame, o, symmetries, ratio, ker, levels)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)
