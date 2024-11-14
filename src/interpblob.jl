@@ -1,50 +1,44 @@
 struct InterpBlob
-    a::AbstractArray
+    p::AbstractArray
     A
     sz
+    asz
     lmin
     lvoid
     lsolid
-    vvoid
-    vsolid
     frame
-    start
+    margin
     symmetries
-    ratio
-    ker
-    levels
+    conv
 end
-@functor InterpBlob (a, A)
-Flux.trainable(m::InterpBlob) = (; a=m.a)
-# Base.size(m::InterpBlob) = size(m.a)
+@functor InterpBlob (p,)
 
-function _InterpBlob(m, f, vvoid=m.vvoid, vsolid=m.vsolid, sharpness::Real=0.99; withloss=false)
-    #  vvoid::Real,vsolid,sharpness::Real=0.99)
-    @unpack a, A, symmetries, sz, lmin, frame, start, ratio, lvoid, lsolid, ker, levels = m
-    @ignore_derivatives_vars (A, ker, levels, frame)
+function (m::InterpBlob)(sharpness::Real=0.99)
+    @unpack p, A, symmetries, sz, asz, lmin, frame, margin, lvoid, lsolid, conv = m
+    @ignore_derivatives_vars (A, frame, conv)
 
-    T = eltype(a)
+    T = eltype(p)
     α = T(1 - sharpness)
-    a = reshape((A) * a, ratio * sz)
-    a = apply(symmetries, a)
+
+    p = abs.(p)
+    # Z = maximum(p)
+    # if Z > 0
+    #     p = p / Z
+    # end
+
+    a = reshape(A * p, asz)
+    a = apply(symmetries, a, sz)
+
+    N = ndims(a)
+    Rf = (size(conv.weight, 1) - 1) ÷ 2
+    a = pad(a, :replicate, Rf)
+    a = reshape(a, size(a)..., 1, 1)
+    a = conv(a)
+    a = dropdims(a, dims=(N + 1, N + 2))
+
     a = step(a, α)
 
-    # margin = Int.((size(frame, 1) - ratio * sz[1]) / 2)
-    # a = smooth(a, α, ratio * lvoid, ratio * lsolid, frame, margin)
-    a = vvoid + (vsolid - vvoid) * a
-    # a = [norm(collect(Tuple(i)) - [25, 25]) < 9.5 for i = CartesianIndices((50, 50))]
 
-    if withloss
-        l = loss(levels, ker, a, frame, start)
-    end
-    if !isnothing(f)
-        a = f(a, ratio)
-    end
-    if withloss
-        return a, l
-    end
-    a
+    # a = smooth(a, α, 0.5lsolid, 0.5lvoid)
+    a = imframe(a, frame, margin)
 end
-
-(m::InterpBlob)(f::Union{Function,Nothing}, args...; kw...) = _InterpBlob(m, f, args...; kw...)
-(m::InterpBlob)(args...; kw...) = _InterpBlob(m, downsample, args...; kw...)

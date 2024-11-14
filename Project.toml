@@ -5,10 +5,8 @@ version = "0.1.17"
 
 [deps]
 ArrayPadding = "fe5ef43c-4912-423d-9170-4bd5cb6a013a"
-ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-Functors = "d9f16b24-f501-4c13-a1f2-28368ffc5196"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Porcupine = "3b53a3d7-3f34-4bba-8df2-4717a8b1e972"
@@ -20,10 +18,8 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 ArrayPadding = "0.1"
-ChainRulesCore = "1"
 FFTW = "1"
 Flux = "0.14,0.15,0.16"
-Functors = "0.4.12"
 Images = "0.26,0.27,0.28"
 LinearAlgebra = "1"
 Porcupine = "0.1"

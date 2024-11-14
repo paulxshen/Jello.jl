@@ -1,20 +1,30 @@
 # using Random, Jello, CairoMakie
-using Random, CairoMakie
+using Random, CairoMakie, Flux
 include("../src/main.jl")
 
 Random.seed!(1)
-l = 100
-lvoid = 1
-lsolid = 1
+n = 100
+lvoid = 10
+lsolid = 10
 init = nothing
 # init = 1
-m = Blob(l, l; init, lvoid, lsolid)
+m = Blob(n, n; init, lvoid, lsolid, symmetries=[1, 2])
 # m = gpu(m)
 sharpness = 0.99
-a = m(sharpness)
+a = m()
 
-fig = Figure()
-grid = fig[1, 1]
-ax, plt = heatmap(grid[1, 1], m())
-Colorbar(grid[1, 2], plt)
-display(fig)
+display(heatmap(a))
+
+opt = Flux.Adam(0.1)
+opt_state = Flux.setup(opt, m)
+for i = 1:10
+    global l, (dldm,) = Flux.withgradient(m) do m
+        l = mae([norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n], m())
+        println(l)
+        l
+    end
+    Flux.update!(opt_state, m, dldm)# |> gpu)
+end
+
+heatmap(m())
+# # heatmap(s=m.conv.weight[:, :, 1, 1])

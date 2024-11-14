@@ -17,78 +17,70 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lvoid=0, lsolid=0,
-    vvoid=0, vsolid=1,
     symmetries=[], alg=:interp, init=nothing,
-    ratio=1, frame=0, margin=0,
-    F=Float32, T=F, verbose=false)
+    frame=nothing, start=1,
+    F=Float32, T=F)
 
     N = length(sz)
+    @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
-    lmin /= sqrt(N)
+    # lmin /= sqrt(N)
     lmin = max(1, lmin)
 
-    rmin = round(Int, (lmin - 1) / 2 + 0.01)
-    if isa(frame, Number)
-        margin = maximum(round.(Int, (lsolid, lvoid)))
-        frame = fill(frame, sz + 2margin)
-    end
-    frame = T(frame)
-    o = fill(ratio * margin + 1, N)
-    frame = imresize(frame; ratio) .> 0.5
-
-    if alg == :interp
-        paramsize = round.(Int, sz ./ lmin) + 1
-    elseif alg == :conv
-        rfilter = round(Int, 1.6rmin)
-        paramsize = sz + 2rfilter
-
-    end
-
-    da = 0.5
-    if isnothing(init)
-        a = 0.5 + da * randn(paramsize)
-    end
-    if isa(init, Number)
-        a = fill(0.5 + 2da * (init - 0.5), paramsize)
-        a += 0.01randn(paramsize)
-    end
-    a = T.(a)
-
-    dl = 1 / ratio
-    Rsolid = lsolid / 2 / dl
-    Rvoid = lvoid / 2 / dl
-    R = 4
-    ker = circle(R)
-    # @show A = sum(ker)
-    A = π * R^2
-    levels = [0, ica(R, Rsolid, Rsolid - 0.5), A - ica(R, Rvoid, Rvoid + 0.5), A]
-    if alg == :interp
-        supersize = ratio * sz
-        J = LinearIndices(a)
-        I = LinearIndices(supersize)
-        A = map(CartesianIndices(Tuple(supersize))) do i
-            _i = I[i]
-            i = Tuple(i)
-            i = 1 + (i - 1) .* (paramsize - 1) ./ (supersize - 1)
-            i = Float32.(i)
-            p = floor.(Int, i)
-            q = ceil.(Int, i)
-            stack(vec([Int32[_i, J[j...], round.(Int, 1000prod(1 - abs.(i - j)))] for j = Base.product([p[i] == q[i] ? (p[i],) : (p[i], q[i]) for i = 1:length(i)]...)]))
+    σ = T(0.6lmin)
+    Rf = round(1.5σ - 0.01)
+    if isnothing(frame)
+        margin = 0
+    else
+        margin = 2Rf
+        if isa(frame, Number)
+            frame = fill(frame, sz + 2margin)
+        else
+            frame = frame[range.(start - margin, start + sz + margin - 1)...]
         end
-        A = reduce(hcat, vec(A))'
-        i, j, v = eachcol(A)
-        A = sparse(i, j, convert.(T, v / 1000))
-        a = vec(a)
-        # nn = [
-        #     map(getindex.(getindex.(t, 1), i)) do c
-        #         c = min.(c, size(a))
-        #         l[c...]
-        #     end for i = 1:2^d
-        # ]
-        # w = [getindex.(getindex.(t, 2), i) for i = 1:2^d]
-        # nn = w = 0
-        vvoid, vsolid = T(vvoid), T(vsolid)
-        return InterpBlob(a, A, sz, lmin, lvoid, lsolid, vvoid, vsolid, frame, o, symmetries, ratio, ker, levels)
+    end
+
+    asz = collect(sz)
+    for s = symmetries
+        asz[s] = round(asz[s] / 2 + 0.01)
+    end
+    asz = Tuple(asz)
+    psz = min.(asz, round(2asz / lmin))
+
+    p = if isnothing(init)
+        rand(T, psz)
+    elseif isa(init, Number)
+        @assert init ∈ (0, 1)
+        init + (-1)^(init) * 0.1rand(T, psz)
+    end
+    p = T.(p)
+
+    if alg == :interp
+        J = LinearIndices(p)
+        I = LinearIndices(asz)
+        if asz == psz
+            A = 1
+        else
+            A = map(CartesianIndices(Tuple(asz))) do i
+                u = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
+                u = max.(1, u)
+                u = min.(u, psz)
+                stack(vec([[
+                    # I[i], J[j...], prod((cospi.(j - u) + 1) / 2)
+                    I[i], J[j...], prod(1 - abs.(j - u))
+                ] for j = Base.product(Set.(zip(floor(u), ceil(u)))...)]))
+            end
+            A = reduce(hcat, vec(A))
+            A = sparse(eachrow(A)...)
+        end
+        p = vec(p)
+
+        n = 2Rf + 1
+        conv = Conv((n, n), 1 => 1)
+        conv.weight .= ball(Rf, N; normalized=true) do x
+            gaussian(x / σ)
+        end
+        return InterpBlob(p, A, sz, asz, lmin, lvoid, lsolid, frame, margin, symmetries, conv)
     elseif alg == :fourier
         if isnothing(init)
             ar = randn(T, nbasis...)
@@ -117,3 +109,11 @@ function Blob(sz::Base.AbstractVecOrTuple;
 end
 Blob(sz...; kw...) = Blob(sz; kw...)
 
+
+# Rk = 2
+# ker = circle(Rk, N)
+# rvalssolid = T.(collect(range(0, Rsolid, 8)))
+# rvalsvoid = T.(collect(range(0, Rvoid, 8)))
+# Avalssolid = ica.(Rk, rvalssolid, rvalssolid - 0.5)
+# Avalsvoid = ica.(Rk, rvalsvoid, rvalsvoid - 0.5)
+# @show A = sum(ker), π * Rk^2
