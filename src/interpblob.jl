@@ -27,7 +27,7 @@ function (m::InterpBlob)(sharpness::Real=0.99)
     # end
 
     a = reshape(A * p, asz)
-    a = apply(symmetries, a, sz)
+    a = apply_symmetries(a, symmetries, sz)
 
     N = ndims(a)
     Rf = (size(conv.weight, 1) - 1) ÷ 2

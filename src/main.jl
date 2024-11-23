@@ -4,15 +4,9 @@ using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 using Flux: @functor, trainable
 include("utils.jl")
 include("loss.jl")
-# include("convblob.jl")
 include("interpblob.jl")
-# include("fourierblob.jl")
+include("fourierblob.jl")
 include("blob.jl")
 # m = Blob(4, 4)
-# g = gradient(m) do m
-#     sum(m())
-# end
-# g[m]
-
 # using Pkg
 # pkg"dev C:\Users\pxshe\OneDrive\Desktop\Porcupine.jl;dev C:\Users\pxshe\OneDrive\Desktop\ArrayPadding.jl; up"

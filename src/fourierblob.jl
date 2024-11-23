@@ -1,14 +1,12 @@
 struct FourierBlob
-    ar::AbstractArray
-    ai::AbstractArray
-    contrast
+    pre::AbstractArray
+    pim::AbstractArray
     sz
-    ose
-    cse
+    lsolid
+    lvoid
     symmetries
-    diagonal_symmetry
 end
-@functor FourierBlob (ar, ai)
+@functor FourierBlob (pre, pim)
 Base.size(m::FourierBlob) = m.sz
 
 """
@@ -34,21 +32,17 @@ Args
 
 # end
 
-function (m::FourierBlob)(contrast=m.contrast, σ=x -> 1 / (1 + exp(-x)))
-    @unpack ar, ai, sz, ose, cse, symmetries, diagonal_symmetry = m
-    a = complex.(ar, ai)
+function (m::FourierBlob)(sharpness::Real=0.99)
+    @unpack pre, pim, sz, lsolid, lvoid, symmetries, = m
+    T = eltype(pre)
+    α = T(1 - sharpness)
+    p = complex.(pre, pim)
     # margins = round.(Int, sz ./ size(a) .* 0.75)
     # i = range.(margins .+ 1, margins .+ sz)
     # r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
-    r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .- size(a))))
+    r = real(ifft(pad(p, 0, 0, sz .- size(p))))
 
-    r = apply(symmetries, r)
-    # r = σ.(contrast * r)
-    r = apply(σ, contrast, r)
-    r = apply(ose, cse, r)
+    r = apply_symmetries(r, symmetries)
+    r = step(r + T(0.5), α)
 end
 
-
-function FourierBlob(m::FourierBlob, sz...; contrast=m.contrast,)
-    FourierBlob(m.ar, m.ai, contrast, sz, m.ose, m.cse, m.symmetries, m.diagonal_symmetry)
-end

@@ -17,7 +17,7 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lvoid=0, lsolid=0,
-    symmetries=[], alg=:interp, init=nothing,
+    symmetries=[], periodic=false, init=nothing,
     frame=nothing, start=1,
     F=Float32, T=F)
 
@@ -27,35 +27,35 @@ function Blob(sz::Base.AbstractVecOrTuple;
     # lmin /= sqrt(N)
     lmin = max(1, lmin)
 
-    σ = T(0.6lmin)
-    Rf = round(1.5σ - 0.01)
-    if isnothing(frame)
-        margin = 0
-    else
-        margin = 2Rf
-        if isa(frame, Number)
-            frame = fill(frame, sz + 2margin)
+    if !periodic
+        σ = T(0.6lmin)
+        Rf = round(1.5σ - 0.01)
+        if isnothing(frame)
+            margin = 0
         else
-            frame = frame[range.(start - margin, start + sz + margin - 1)...]
+            margin = 2Rf
+            if isa(frame, Number)
+                frame = fill(frame, sz + 2margin)
+            else
+                frame = frame[range.(start - margin, start + sz + margin - 1)...]
+            end
         end
-    end
 
-    asz = collect(sz)
-    for s = symmetries
-        asz[s] = round(asz[s] / 2 + 0.01)
-    end
-    asz = Tuple(asz)
-    psz = min.(asz, round(2asz / lmin))
+        asz = collect(sz)
+        for s = symmetries
+            asz[s] = round(asz[s] / 2 + 0.01)
+        end
+        asz = Tuple(asz)
+        psz = min.(asz, round(2asz / lmin))
 
-    p = if isnothing(init)
-        rand(T, psz)
-    elseif isa(init, Number)
-        @assert init ∈ (0, 1)
-        init + (-1)^(init) * 0.1rand(T, psz)
-    end
-    p = T.(p)
+        p = if isnothing(init)
+            rand(T, psz)
+        elseif isa(init, Number)
+            @assert init ∈ (0, 1)
+            init + (-1)^(init) * 0.1rand(T, psz)
+        end
+        p = T.(p)
 
-    if alg == :interp
         J = LinearIndices(p)
         I = LinearIndices(asz)
         if asz == psz
@@ -81,33 +81,32 @@ function Blob(sz::Base.AbstractVecOrTuple;
             gaussian(x / σ)
         end
         return InterpBlob(p, A, sz, asz, lmin, lvoid, lsolid, frame, margin, symmetries, conv)
-    elseif alg == :fourier
+    else
+        psz = round(sz / lmin)
         if isnothing(init)
-            ar = randn(T, nbasis...)
-            ai = randn(T, nbasis...)
+            pre = randn(T, psz)
+            pim = randn(T, psz)
         else
-            ar = zeros(T, nbasis...)
-            ai = zeros(T, nbasis...)
+            pre = zeros(T, psz)
+            pim = zeros(T, psz)
             if init == 1
-                ar[1] = 1
+                pre[1] = sqrt(length(pre))
             end
         end
 
-        if verbose
-            @info """
-        Blob configs
-        
-        Geometry generation 
-        - algorithm: Fourier basis
-        - Fourier k-space size (# of Fourier basis per dimension): $nbasis
-        $com
-        """
-        end
-
-        return FourierBlob(ar, ai, T(contrast), sz, lsolid, lvoid, symmetries, diagonal_symmetry)
+        return FourierBlob(pre, pim, sz, lsolid, lvoid, symmetries)
     end
 end
 Blob(sz...; kw...) = Blob(sz; kw...)
+# if verbose
+#     @info """
+# Blob configs
+
+# Geometry generation 
+# - algorithm: Fourier basis
+# - Fourier k-space size (# of Fourier basis per dimension): $nbasis
+# $com
+# """
 
 
 # Rk = 2

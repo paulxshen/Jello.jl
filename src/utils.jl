@@ -40,28 +40,33 @@ end
 function se(r, d=2)
     centered(circle(r, d) .> 0)
 end
-function apply(symmetries, a, sz)
+function apply_symmetries(a, symmetries, sz)
     if isempty(symmetries)
         return a
     end
     for s = symmetries
         a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
-        # d = string(d)
-        # if startswith(d, "diag")
-        #     r = (r + r') / 2 # diagonal symmetry in this Ceviche challenge
-        # elseif startswith(d, "anti")
-        #     r = (r + reverse(r, dims=1)') / 2
-        #     # elseif startswith(d ,"anti")
-        # elseif d == "inversion"
-        #     r += reverse(r, dims=Tuple(1:ndims(r)))
-        #     r /= 2
-        # else
-        #     d = ignore_derivatives() do
-        #         parse(Int, d)
-        #     end
-        #     r += reverse(r, dims=d)
-        #     r /= 2
-        # end
+    end
+end
+
+function apply_symmetries(a, symmetries)
+    for d = symmetries
+        d = string(d)
+        if startswith(d, "diag")
+            a = (a + a') / 2 # diagonal symmetry in this Ceviche challenge
+        elseif startswith(d, "anti")
+            a = (a + reverse(a, dims=1)') / 2
+            # elseif startswith(d ,"anti")
+        elseif d == "inversion"
+            a += reverse(a, dims=Tuple(1:ndims(a)))
+            a /= 2
+        else
+            d = ignore_derivatives() do
+                parse(Int, d)
+            end
+            a += reverse(a, dims=d)
+            a /= 2
+        end
     end
     a
 end

@@ -8,7 +8,7 @@ lvoid = 10
 lsolid = 10
 init = nothing
 # init = 1
-m = Blob(n, n; init, lvoid, lsolid, symmetries=[1, 2])
+m = Blob(n, n; init, lvoid, lsolid, periodic=true, symmetries=[1, 2])
 # m = gpu(m)
 sharpness = 0.99
 a = m()
