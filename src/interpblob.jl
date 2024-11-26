@@ -13,7 +13,7 @@ struct InterpBlob
 end
 @functor InterpBlob (p,)
 
-function (m::InterpBlob)(sharpness::Real=0.99)
+function (m::InterpBlob)(sharpness::Real=0.995)
     @unpack p, A, symmetries, sz, asz, lmin, frame, margin, lvoid, lsolid, conv = m
     @ignore_derivatives_vars (A, frame, conv)
 
@@ -37,8 +37,6 @@ function (m::InterpBlob)(sharpness::Real=0.99)
     a = dropdims(a, dims=(N + 1, N + 2))
 
     a = step(a, α)
-
-
-    # a = smooth(a, α, 0.5lsolid, 0.5lvoid)
     a = imframe(a, frame, margin)
+    # a = smooth(a, α, lsolid, lvoid)
 end

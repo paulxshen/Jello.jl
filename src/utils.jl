@@ -2,7 +2,7 @@ _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function ball(f, R, N=2; normalized=false)
     a = map(Base.product(fill(-R:R, N)...)) do r
         r = norm(collect(r))
-        r > R ? 0 : f(r)
+        r > R + 0.001 ? 0 : f(r)
     end
     if normalized
         a /= sum(a)
@@ -38,7 +38,9 @@ function conic(r, d; normalized=false)
     a
 end
 function se(r, d=2)
-    centered(circle(r, d) .> 0)
+    a = ball(x -> 1, r, d) .> 0
+    # display(heatmap(a))
+    centered(a)
 end
 function apply_symmetries(a, symmetries, sz)
     if isempty(symmetries)
@@ -47,6 +49,7 @@ function apply_symmetries(a, symmetries, sz)
     for s = symmetries
         a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
     end
+    a
 end
 
 function apply_symmetries(a, symmetries)
@@ -73,7 +76,7 @@ end
 function step(a::AbstractArray{T}, α::Real) where {T}
     m = a .> 0.5
     α = T(α)
-    a = α / 2 * tanh.(a - T(0.5)) + (m) * (1 - α / 2) + (1 - m) * (α / 2)
+    a = α * tanh.(a - T(0.5)) + (m) * (1 - α) + (1 - m) * (α)
 end
 
 # function open(a, r)
