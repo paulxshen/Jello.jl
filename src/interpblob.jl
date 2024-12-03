@@ -13,7 +13,7 @@ struct InterpBlob
 end
 @functor InterpBlob (p,)
 
-function (m::InterpBlob)(sharpness::Real=0.995)
+function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
     @unpack p, A, symmetries, sz, asz, lmin, frame, margin, lvoid, lsolid, conv = m
     @ignore_derivatives_vars (A, frame, conv)
 
@@ -38,5 +38,12 @@ function (m::InterpBlob)(sharpness::Real=0.995)
 
     a = step(a, α)
     a = imframe(a, frame, margin)
-    # a = smooth(a, α, lsolid, lvoid)
+
+    if withloss
+        p = 1
+        l = loss(a, p * lsolid, p * lvoid)
+        a, l
+    else
+        a
+    end
 end

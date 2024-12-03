@@ -111,6 +111,34 @@ function imframe(a0, frame=nothing, margin=0)
     end
 end
 
+function loss(a::AbstractArray{T}, lsolid=0, lvoid=0,) where {T}
+    m = Array(a) .> 0.5
+    n = 4
+    ps = T.((1:n) / n)
+    A = ignore_derivatives() do
+        sum(ps) do p
+            Rsolid = round(p * lsolid / 2 - 0.01)
+            if Rsolid > 0
+                ms = opening(m, se(Rsolid, ndims(a)))
+                (ms .< m) * T(1 / n)
+            else
+                0
+            end
+        end
+    end
+    B = ignore_derivatives() do
+        sum(ps) do p
+            Rvoid = round(p * lvoid / 2 - 0.01)
+            if Rvoid > 0
+                mv = closing(m, se(Rvoid, ndims(a)))
+                (mv .> m) * T(1 / n)
+            else
+                0
+            end
+        end
+    end
+    sum(A .* a + B .* (1 - a)) / prod(size(a))
+end
 function smooth(a::T, α, lvoid=0, lsolid=0) where {T}
     m0 = Array(a) .> 0.5
     m = m0

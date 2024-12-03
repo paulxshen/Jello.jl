@@ -14,15 +14,18 @@ sharpness = 0.99
 a = m()
 
 display(heatmap(a))
-error("stop here")
+# error("stop here")
 
 opt = Flux.Adam(0.1)
 opt_state = Flux.setup(opt, m)
-for i = 1:10
+for i = 1:40
     global l, (dldm,) = Flux.withgradient(m) do m
-        l = mae([norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n], m())
-        println(l)
-        l
+        a, l1 = m(withloss=true)
+        l1 = max(l1, 1.0f-2)
+        # l2 = mae([norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n], a)
+        l2 = 0
+        println(l1, l2)
+        l1 + l2
     end
     Flux.update!(opt_state, m, dldm)# |> gpu)
 end
