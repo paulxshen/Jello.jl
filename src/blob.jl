@@ -28,7 +28,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     lmin = max(1, lmin)
 
     if !periodic
-        σ = T(0.6lmin)
+        σ = T(0.5lmin)
         Rf = round(1.5σ - 0.01)
         if isnothing(frame)
             margin = 0
@@ -62,13 +62,20 @@ function Blob(sz::Base.AbstractVecOrTuple;
             A = 1
         else
             A = map(CartesianIndices(Tuple(asz))) do i
-                u = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
-                u = max.(1, u)
-                u = min.(u, psz)
+                r = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
+                r = max.(1, r)
+                r = min.(r, psz)
+
+                js = collect(Base.product(Set.(zip(floor(r), ceil(r)))...))
+                # zs = norm.(collect.((r,) .- js))
+                # Z = sum(zs)
+                # n = length(js)
                 stack(vec([[
-                    # I[i], J[j...], prod((cospi.(j - u) + 1) / 2)
-                    I[i], J[j...], prod(1 - abs.(j - u))
-                ] for j = Base.product(Set.(zip(floor(u), ceil(u)))...)]))
+                    # I[i], J[j...], prod((cospi.(j - r) + 1) / 2)
+                    I[i], J[j...], prod(1 - abs.(j - r))
+                    # I[i], J[j...], n == 1 ? 1 : (Z - z) / Z / (n - 1)
+                ] for j = js]))
+                # ] for (j, z) = zip(js, zs)]))
             end
             A = reduce(hcat, vec(A))
             A = sparse(eachrow(A)...)

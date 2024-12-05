@@ -21,10 +21,6 @@ function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
     α = T(1 - sharpness)
 
     p = abs.(p)
-    # Z = maximum(p)
-    # if Z > 0
-    #     p = p / Z
-    # end
 
     a = reshape(A * p, asz)
     a = apply_symmetries(a, symmetries, sz)
@@ -44,6 +40,6 @@ function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
         l = loss(a, p * lsolid, p * lvoid)
         a, l
     else
-        a
+        smooth(a, α, lsolid, lvoid)
     end
 end

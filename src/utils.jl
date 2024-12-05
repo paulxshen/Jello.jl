@@ -115,41 +115,43 @@ function loss(a::AbstractArray{T}, lsolid=0, lvoid=0,) where {T}
     m = Array(a) .> 0.5
     n = 4
     ps = T.((1:n) / n)
-    A = ignore_derivatives() do
-        sum(ps) do p
-            Rsolid = round(p * lsolid / 2 - 0.01)
-            if Rsolid > 0
+    A = if lsolid > 0
+        ignore_derivatives() do
+            sum(ps) do p
+                Rsolid = max(1, round(p * lsolid / 2 - 0.01))
                 ms = opening(m, se(Rsolid, ndims(a)))
                 (ms .< m) * T(1 / n)
-            else
-                0
             end
         end
+    else
+        0
     end
-    B = ignore_derivatives() do
-        sum(ps) do p
-            Rvoid = round(p * lvoid / 2 - 0.01)
-            if Rvoid > 0
+    B = if lvoid > 0
+        ignore_derivatives() do
+            sum(ps) do p
+                Rvoid = max(1, round(p * lvoid / 2 - 0.01))
                 mv = closing(m, se(Rvoid, ndims(a)))
                 (mv .> m) * T(1 / n)
-            else
-                0
             end
         end
+    else
+        0
     end
     sum(A .* a + B .* (1 - a)) / prod(size(a))
 end
-function smooth(a::T, α, lvoid=0, lsolid=0) where {T}
+function smooth(a::T, α=0, lsolid=0, lvoid=0) where {T}
     m0 = Array(a) .> 0.5
     m = m0
 
     A, B = ignore_derivatives() do
-        Rsolid = round(lsolid / 2 - 0.01)
-        Rvoid = round(lvoid / 2 - 0.01)
+        Rsolid = round(lsolid / 2 - 0.01) - 1
+        Rvoid = round(lvoid / 2 - 0.01) - 1
         if Rsolid > 0
+            # println(Rsolid)
             m = opening(m, se(Rsolid, ndims(a)))
         end
         if Rvoid > 0
+            # println(Rvoid)
             m = closing(m, se(Rvoid, ndims(a)))
         end
         m .> m0, m .< m0
