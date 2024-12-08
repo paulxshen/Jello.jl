@@ -17,10 +17,11 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lvoid=0, lsolid=0,
-    symmetries=[], periodic=false, init=nothing,
+    symmetries=(), periodic=false, init=nothing,
     frame=nothing, start=1,
     F=Float32, T=F)
-
+    sz = Tuple(sz)
+    symmetries = Tuple(symmetries)
     N = length(sz)
     @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
@@ -87,7 +88,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         conv.weight .= ball(Rf, N; normalized=true) do x
             gaussian(x / σ)
         end
-        return InterpBlob(p, A, sz, asz, lmin, lvoid, lsolid, frame, margin, symmetries, conv)
+        return InterpBlob(p, A, sz, asz, lvoid, lsolid, frame, margin, symmetries, conv)
     else
         psz = round(sz / lmin)
         if isnothing(init)
@@ -115,11 +116,4 @@ Blob(sz...; kw...) = Blob(sz; kw...)
 # $com
 # """
 
-
-# Rk = 2
-# ker = circle(Rk, N)
-# rvalssolid = T.(collect(range(0, Rsolid, 8)))
-# rvalsvoid = T.(collect(range(0, Rvoid, 8)))
-# Avalssolid = ica.(Rk, rvalssolid, rvalssolid - 0.5)
-# Avalsvoid = ica.(Rk, rvalsvoid, rvalsvoid - 0.5)
-# @show A = sum(ker), π * Rk^2
+Optimisers.maywrite(x::AbstractSparseArray) = true

@@ -3,19 +3,17 @@ struct InterpBlob
     A
     sz
     asz
-    lmin
     lvoid
     lsolid
     frame
-    margin
+    margin::Int
     symmetries
     conv
 end
-@functor InterpBlob (p,)
 
 function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
-    @unpack p, A, symmetries, sz, asz, lmin, frame, margin, lvoid, lsolid, conv = m
-    @ignore_derivatives_vars (A, frame, conv)
+    @unpack p, A, symmetries, sz, asz, frame, margin, lvoid, lsolid, conv = m
+    @ignore_derivatives_vars (A, frame, conv, lvoid, lsolid)
 
     T = eltype(p)
     α = T(1 - sharpness)

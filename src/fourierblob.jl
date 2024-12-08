@@ -6,7 +6,6 @@ struct FourierBlob
     lvoid
     symmetries
 end
-@functor FourierBlob (pre, pim)
 Base.size(m::FourierBlob) = m.sz
 
 """
@@ -34,6 +33,7 @@ Args
 
 function (m::FourierBlob)(sharpness::Real=0.99)
     @unpack pre, pim, sz, lsolid, lvoid, symmetries, = m
+    @ignore_derivatives_vars lsolid, lvoid
     T = eltype(pre)
     α = T(1 - sharpness)
     p = complex.(pre, pim)

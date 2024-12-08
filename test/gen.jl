@@ -14,7 +14,7 @@ sharpness = 0.99
 a = m()
 
 display(heatmap(a))
-error("stop here")
+# error("stop here")
 
 opt = Flux.Adam(0.1)
 opt_state = Flux.setup(opt, m)
