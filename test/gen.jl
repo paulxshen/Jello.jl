@@ -1,5 +1,6 @@
 # using Random, Jello, CairoMakie
 using Random, CairoMakie, Flux
+using Flux: mae
 include("../src/main.jl")
 
 Random.seed!(1)
@@ -20,12 +21,7 @@ opt = Flux.Adam(0.1)
 opt_state = Flux.setup(opt, m)
 for i = 1:40
     global l, (dldm,) = Flux.withgradient(m) do m
-        a, l1 = m(withloss=true)
-        # l1 = max(l1, 1.0f-2)
-        # l2 = mae([norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n], a)
-        l2 = 0
-        println(l1, l2)
-        l1 + l2
+        mae([norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n], m())
     end
     Flux.update!(opt_state, m, dldm)# |> gpu)
 end

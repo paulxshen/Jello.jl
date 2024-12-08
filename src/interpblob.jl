@@ -3,17 +3,19 @@ struct InterpBlob
     A
     sz
     asz
-    lvoid
-    lsolid
+    sesolid
+    sevoid
+    jump
     frame
     margin::Int
     symmetries
     conv
 end
+Base.size(m::InterpBlob) = m.sz
 
-function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
-    @unpack p, A, symmetries, sz, asz, frame, margin, lvoid, lsolid, conv = m
-    @ignore_derivatives_vars (A, frame, conv, lvoid, lsolid)
+function (m::InterpBlob)(sharpness::Real=0.995;)
+    @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
+    @ignore_derivatives_vars (A, frame, conv,)
 
     T = eltype(p)
     α = T(1 - sharpness)
@@ -32,12 +34,5 @@ function (m::InterpBlob)(sharpness::Real=0.995; withloss=false)
 
     a = step(a, α)
     a = imframe(a, frame, margin)
-
-    if withloss
-        p = 1
-        l = loss(a, p * lsolid, p * lvoid)
-        a, l
-    else
-        smooth(a, α, lsolid, lvoid)
-    end
+    smooth(a, α, sesolid, sevoid)
 end

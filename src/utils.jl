@@ -139,20 +139,16 @@ function loss(a::AbstractArray{T}, lsolid=0, lvoid=0,) where {T}
     end
     sum(A .* a + B .* (1 - a)) / prod(size(a))
 end
-function smooth(a::T, α=0, lsolid=0, lvoid=0) where {T}
+function smooth(a::T, α=0, sesolid=nothing, sevoid=nothing) where {T}
     m0 = Array(a) .> 0.5
     m = m0
 
     A, B = ignore_derivatives() do
-        Rsolid = round(lsolid / 2 - 0.01) - 1
-        Rvoid = round(lvoid / 2 - 0.01) - 1
-        if Rsolid > 0
-            # println(Rsolid)
-            m = opening(m, se(Rsolid, ndims(a)))
+        if !isnothing(sesolid)
+            m = opening(m, sesolid)
         end
-        if Rvoid > 0
-            # println(Rvoid)
-            m = closing(m, se(Rvoid, ndims(a)))
+        if !isnothing(sevoid)
+            m = closing(m, sevoid)
         end
         m .> m0, m .< m0
     end

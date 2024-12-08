@@ -88,7 +88,17 @@ function Blob(sz::Base.AbstractVecOrTuple;
         conv.weight .= ball(Rf, N; normalized=true) do x
             gaussian(x / σ)
         end
-        return InterpBlob(p, A, sz, asz, lvoid, lsolid, frame, margin, symmetries, conv)
+
+        rsolid = round(lsolid / 2 - 0.01) - 1
+        rvoid = round(lvoid / 2 - 0.01) - 1
+        sesolid = rsolid > 0 ? se(rsolid, N) : nothing
+        sevoid = rvoid > 0 ? se(rvoid, N) : nothing
+        jump = if sesolid == sevoid == nothing
+            0
+        else
+            minimum(sum.(filter(x -> x != nothing, [sesolid, sevoid])))
+        end
+        return InterpBlob(p, A, sz, asz, sesolid, sevoid, jump, frame, margin, symmetries, conv)
     else
         psz = round(sz / lmin)
         if isnothing(init)
