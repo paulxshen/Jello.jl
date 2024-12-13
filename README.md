@@ -1,10 +1,8 @@
 # Jello.jl
 
-Automatic differentiation  (AD) and GPU compatible geometry generator with length scale and sharpness control. Applications in topology optimization , inverse design... 
+Fully differentiable, GPU compatible geometry generator with length scale and sharpness control. Applications in topology optimization and inverse design.
 
-Flux.jl compatible 
-
-See [docs](docs.ipynb)
+See examples folder. Install directly via `]add https://github.com/paulxshen/Jello.jl` for latest version
 
 ### Contributors
 Paul Shen  
