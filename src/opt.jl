@@ -7,7 +7,7 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     maxchange
     function AreaChangeOptimiser(m; maxchange=1)
         η = 10000
-        opt = Adam()
+        opt = Adam(1)
         # jump = m.jump * (length(m.symmetries) + 1)
         A = sum(prod(size(m)))
         new(opt, m, η, A, maxchange)
@@ -16,7 +16,6 @@ end
 
 function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     @unpack m, A, opt, maxchange = o
-    m.p .= x
     a0 = m() .> 0.5
 
     T = eltype(x)
@@ -27,8 +26,8 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     i = 0
     maxdA = max(4, maxchange * A)
-    # mindA = max(1,)
-    while i == 0 || dA > maxdA
+    mindA = 1
+    while i == 0 || dA > maxdA || dA < mindA
         if i > 0
             if dA > maxdA
                 o.η /= T(1.05)
@@ -37,9 +36,8 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
             end
         end
 
-        global _a = x̄, x̄0
         x̄ = o.η * x̄0
-        x = x0 - x̄
+        x .= x0 - x̄
         m.p .= x
         a = m() .> 0.5
         dA = sum(a - a0) do a
