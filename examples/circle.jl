@@ -8,7 +8,7 @@ Random.seed!(1)
 n = 100
 lvoid = 10
 lsolid = 10
-init = nothing # random
+init = 1 # random
 m = Blob(n, n; init, lvoid, lsolid, symmetries=[])
 
 # init = 1 # almost uniformly 1
@@ -21,9 +21,9 @@ display(heatmap(a))
 # error("stop here")
 
 opt = AreaChangeOptimiser(m; maxchange=0.1)
-# opt=Adam(1)
+# opt=Adam()
 opt_state = Flux.setup(opt, m)
-for i = 1:10
+for i = 1:20
     l, (dldm,) = Flux.withgradient(m) do m
         circ = [norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n]
         Flux.mae(circ, m())
