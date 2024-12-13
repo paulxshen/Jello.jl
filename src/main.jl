@@ -7,6 +7,9 @@ include("loss.jl")
 include("interpblob.jl")
 include("fourierblob.jl")
 include("blob.jl")
+include("opt.jl")
+# include("sgopt.jl")
+
 # m = Blob(4, 4)
 # using Pkg
 # pkg"dev C:\Users\pxshe\OneDrive\Desktop\beans\Porcupine.jl;dev C:\Users\pxshe\OneDrive\Desktop\beans\ArrayPadding.jl; up"

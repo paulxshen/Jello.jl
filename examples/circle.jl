@@ -1,10 +1,8 @@
 # training a model to match a circular pattern
 
-# using Random, Jello, CairoMakie
 using Random, CairoMakie, Flux
-include("../src/main.jl")
-include("../src/opt.jl")
-# include("sgopt.jl")
+using Jello
+# include("../src/main.jl")
 
 Random.seed!(1)
 n = 100
