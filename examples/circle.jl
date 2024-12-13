@@ -23,7 +23,7 @@ display(heatmap(a))
 opt = AreaChangeOptimiser(m; maxchange=0.1)
 # opt=Adam(1)
 opt_state = Flux.setup(opt, m)
-for i = 1:40
+for i = 1:10
     l, (dldm,) = Flux.withgradient(m) do m
         circ = [norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n]
         Flux.mae(circ, m())
@@ -32,6 +32,6 @@ for i = 1:40
     println("loss: $l")
     Flux.update!(opt_state, m, dldm)
     println()
+    heatmap(m()) |> display
 end
-heatmap(m())
 
