@@ -6,12 +6,13 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     A
     minchange
     maxchange
+    ls
     function AreaChangeOptimiser(m; minchange=0, maxchange=1)
         η = 1
-        opt = Adam(1)
+        opt = Momentum(1, 0.6)
         # jump = m.jump * (length(m.symmetries) + 1)
         A = sum(prod(size(m)))
-        new(opt, m, η, A, minchange, maxchange)
+        new(opt, m, η, A, minchange, maxchange, [])
     end
 end
 
@@ -41,7 +42,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
             end
         end
 
-        x̄ = o.η * x̄0
+        x̄ = T(o.η) * x̄0
         m.p .= x0 - x̄
         a = m() .> 0.5
         dA = sum(abs, a - a0)
@@ -61,4 +62,16 @@ function Optimisers.init(o::AreaChangeOptimiser, x)
     # @show jump = maximum(getfield.(x, :jump))
 
     opt_state = Optimisers.init(o.opt, x)
+end
+
+function update_loss!(o::AreaChangeOptimiser, l)
+    push!(o.ls, l)
+    c = 1.1
+    if length(o.ls) > 1
+        if o.ls[end] > o.ls[end-1]
+            o.η /= c
+        else
+            o.η *= c
+        end
+    end
 end

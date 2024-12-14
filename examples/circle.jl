@@ -1,8 +1,8 @@
 # training a model to match a circular pattern
 
 using Random, CairoMakie, Flux
-using Jello
-# include("../src/main.jl")
+# using Jello
+include("../src/main.jl")
 
 Random.seed!(1)
 n = 100
@@ -20,8 +20,7 @@ a = m(sharpness)
 display(heatmap(a))
 # error("stop here")
 
-opt = AreaChangeOptimiser(m; maxchange=0.1)
-# opt=Adam()
+opt = AreaChangeOptimiser(m; maxchange=0.2)
 opt_state = Flux.setup(opt, m)
 for i = 1:20
     l, (dldm,) = Flux.withgradient(m) do m
@@ -30,6 +29,7 @@ for i = 1:20
     end
     println("($i)")
     println("loss: $l")
+    update_loss!(opt, l)
     Flux.update!(opt_state, m, dldm)
     println()
     heatmap(m()) |> display
