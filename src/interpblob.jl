@@ -13,14 +13,12 @@ struct InterpBlob
 end
 Base.size(m::InterpBlob) = m.sz
 
-function (m::InterpBlob)(sharpness::Real=0.995;)
+function (m::InterpBlob)(sharpness::Real=0.998;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
     @ignore_derivatives_vars (A, frame, conv,)
 
     T = eltype(p)
-    α = T(1 - sharpness)
-
-    p = abs.(p)
+    α = T(1 - sharpness) / 2
 
     a = reshape(A * p, asz)
     a = apply_symmetries(a, symmetries, sz)
@@ -34,5 +32,8 @@ function (m::InterpBlob)(sharpness::Real=0.995;)
 
     a = step(a, α)
     a = imframe(a, frame, margin)
-    smooth(a, α, sesolid, sevoid)
+    if sharpness > 0
+        a = smooth(a, α, sesolid, sevoid)
+    end
+    a
 end

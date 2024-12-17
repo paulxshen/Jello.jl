@@ -7,10 +7,8 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     minchange
     maxchange
     ls
-    function AreaChangeOptimiser(m; minchange=0, maxchange=1)
-        η = 1
-        opt = Momentum(1, 0.6)
-        # jump = m.jump * (length(m.symmetries) + 1)
+    function AreaChangeOptimiser(m; opt=Momentum(1, 0.8), minchange=0, maxchange=0.1)
+        η = nothing
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [])
     end
@@ -27,17 +25,23 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     s, x̄ = Optimisers.apply!(opt, s, x, x̄)
     x̄0 = deepcopy(x̄)
 
-    i = 0
     maxdA = max(1, maxchange * A)
     mindA = max(1, minchange * A)
+    if isnothing(o.η)
+        o.η = 1
+        mindA = maxdA
+    end
+
+    i = 0
     overshot = undershot = false
-    while i < 100 && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
+    while (1.0f-15 < o.η < 1.0f15) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
         if i > 0
+            c = T(1.2)
             if dA > maxdA
-                o.η /= T(1.05)
+                o.η /= c
                 overshot = true
             else
-                o.η *= T(1.05)
+                o.η *= c
                 undershot = true
             end
         end
@@ -66,7 +70,7 @@ end
 
 function update_loss!(o::AreaChangeOptimiser, l)
     push!(o.ls, l)
-    c = 1.1
+    c = 1.2
     if length(o.ls) > 1
         if o.ls[end] > o.ls[end-1]
             o.η /= c

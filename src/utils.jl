@@ -73,10 +73,13 @@ function apply_symmetries(a, symmetries)
     end
     a
 end
+
 function step(a::AbstractArray{T}, α::Real) where {T}
     m = a .> 0.5
     α = T(α)
-    a = α * tanh.(a - T(0.5)) + (m) * (1 - α) + (1 - m) * (α)
+    a = min.(1, a)
+    a = max.(0, a)
+    a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
 end
 
 # function open(a, r)
@@ -111,48 +114,20 @@ function imframe(a0, frame=nothing, margin=0)
     end
 end
 
-function loss(a::AbstractArray{T}, lsolid=0, lvoid=0,) where {T}
-    m = Array(a) .> 0.5
-    n = 4
-    ps = T.((1:n) / n)
-    A = if lsolid > 0
-        ignore_derivatives() do
-            sum(ps) do p
-                Rsolid = max(1, round(p * lsolid / 2 - 0.01))
-                ms = opening(m, se(Rsolid, ndims(a)))
-                (ms .< m) * T(1 / n)
-            end
-        end
-    else
-        0
-    end
-    B = if lvoid > 0
-        ignore_derivatives() do
-            sum(ps) do p
-                Rvoid = max(1, round(p * lvoid / 2 - 0.01))
-                mv = closing(m, se(Rvoid, ndims(a)))
-                (mv .> m) * T(1 / n)
-            end
-        end
-    else
-        0
-    end
-    sum(A .* a + B .* (1 - a)) / prod(size(a))
-end
 function smooth(a::T, α=0, sesolid=nothing, sevoid=nothing) where {T}
     m0 = Array(a) .> 0.5
     m = m0
 
-    A, B = ignore_derivatives() do
+    m = ignore_derivatives() do
         if !isnothing(sesolid)
             m = opening(m, sesolid)
         end
         if !isnothing(sevoid)
             m = closing(m, sevoid)
         end
-        m .> m0, m .< m0
+        m
     end
-    a + (1 - α) * T(A - B)
+    a .* (m .== m0) + (m .> m0)
 end
 
 function resize(a, sz)

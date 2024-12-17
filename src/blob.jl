@@ -17,7 +17,7 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lvoid=0, lsolid=0,
-    symmetries=(), periodic=false, init=nothing,
+    symmetries=(), periodic=false, solid_frac=0.5,
     frame=nothing, start=1,
     F=Float32, T=F)
     sz = Tuple(sz)
@@ -25,12 +25,13 @@ function Blob(sz::Base.AbstractVecOrTuple;
     N = length(sz)
     @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
-    # lmin /= sqrt(N)
+    lmin /= sqrt(N)
     lmin = max(1, lmin)
 
     if !periodic
-        σ = T(0.5lmin)
-        Rf = round(1.5σ - 0.01)
+        # σ = T(0.5lmin)
+        # Rf = round(1.5σ - 0.01)
+        Rf = round(0.5lmin - 0.01)
         if isnothing(frame)
             margin = 0
         else
@@ -47,14 +48,11 @@ function Blob(sz::Base.AbstractVecOrTuple;
             asz[s] = round(asz[s] / 2 + 0.01)
         end
         asz = Tuple(asz)
-        psz = min.(asz, round(2asz / lmin))
+        psz = min.(asz, round(asz / lmin))
 
-        p = if isnothing(init)
-            rand(T, psz)
-        elseif isa(init, Number)
-            @assert init ∈ (0, 1)
-            init + (-1)^(init) * 0.1rand(T, psz)
-        end
+        p = rand(T, psz)
+        # Isolid = p .> (1 - solid_frac)
+        # p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
         p = T.(p)
 
         J = LinearIndices(p)
@@ -86,7 +84,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         n = 2Rf + 1
         conv = Conv((n, n), 1 => 1)
         conv.weight .= ball(Rf, N; normalized=true) do x
-            gaussian(x / σ)
+            # gaussian(x / σ)
+            1
         end
 
         rsolid = round(lsolid / 2 - 0.01) - 1
@@ -101,13 +100,13 @@ function Blob(sz::Base.AbstractVecOrTuple;
         return InterpBlob(p, A, sz, asz, sesolid, sevoid, jump, frame, margin, symmetries, conv)
     else
         psz = round(sz / lmin)
-        if isnothing(init)
+        if isnothing(solid_frac)
             pre = randn(T, psz)
             pim = randn(T, psz)
         else
             pre = zeros(T, psz)
             pim = zeros(T, psz)
-            if init == 1
+            if solid_frac == 1
                 pre[1] = sqrt(length(pre))
             end
         end
