@@ -1,7 +1,6 @@
-using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Flux, Porcupine, ImageMorphology, Optimisers
+using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, ImageMorphology, Optimisers
 using Porcupine: keys, values, trim, round, floor, ceil
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
-using Flux: trainable
 include("utils.jl")
 include("loss.jl")
 include("interpblob.jl")

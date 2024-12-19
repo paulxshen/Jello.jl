@@ -7,7 +7,10 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     minchange
     maxchange
     ls
-    function AreaChangeOptimiser(m; opt=Momentum(1, 0.8), minchange=0, maxchange=0.1)
+    function AreaChangeOptimiser(m;
+        opt=Momentum(1, 0.8),
+        #  opt=Adam(1, (0.8, 0.9)),
+        minchange=0, maxchange=0.1)
         η = nothing
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [])
@@ -78,4 +81,16 @@ function update_loss!(o::AreaChangeOptimiser, l)
             o.η *= c
         end
     end
+    repair!(o.m)
+end
+update_loss!(a...) = 0
+
+function repair!(m::InterpBlob)
+    p = m.p
+    p .= max.(0, p)
+    p .= min.(1, p)
+    m
+end
+function repair!(m)
+    m
 end

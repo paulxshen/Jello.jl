@@ -33,7 +33,7 @@ function (m::InterpBlob)(sharpness::Real=0.998;)
     a = step(a, α)
     a = imframe(a, frame, margin)
     if sharpness > 0
-        a = smooth(a, α, sesolid, sevoid)
+        a = smooth(a, sesolid, sevoid)
     end
     a
 end

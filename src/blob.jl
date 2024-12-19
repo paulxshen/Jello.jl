@@ -25,10 +25,16 @@ function Blob(sz::Base.AbstractVecOrTuple;
     N = length(sz)
     @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
-    lmin /= sqrt(N)
-    lmin = max(1, lmin)
+
+
+    rsolid = round(lsolid / 2 - 0.01) - 1
+    rvoid = round(lvoid / 2 - 0.01) - 1
+    sesolid = rsolid > 0 ? se(rsolid, N) : nothing
+    sevoid = rvoid > 0 ? se(rvoid, N) : nothing
 
     if !periodic
+        lmin /= sqrt(N)
+        lmin = max(1, lmin)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
         Rf = round(0.5lmin - 0.01)
@@ -88,10 +94,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             1
         end
 
-        rsolid = round(lsolid / 2 - 0.01) - 1
-        rvoid = round(lvoid / 2 - 0.01) - 1
-        sesolid = rsolid > 0 ? se(rsolid, N) : nothing
-        sevoid = rvoid > 0 ? se(rvoid, N) : nothing
+
         jump = if sesolid == sevoid == nothing
             0
         else
@@ -100,18 +103,13 @@ function Blob(sz::Base.AbstractVecOrTuple;
         return InterpBlob(p, A, sz, asz, sesolid, sevoid, jump, frame, margin, symmetries, conv)
     else
         psz = round(sz / lmin)
-        if isnothing(solid_frac)
-            pre = randn(T, psz)
-            pim = randn(T, psz)
-        else
-            pre = zeros(T, psz)
-            pim = zeros(T, psz)
-            if solid_frac == 1
-                pre[1] = sqrt(length(pre))
-            end
-        end
+        psz = min.(psz, sz)
+        p = randn(T, (psz..., 2))
+        p[1] = solid_frac |> T
+        p[length(p)÷2+1] = 0
+        p[1] *= prod(sz)
 
-        return FourierBlob(pre, pim, sz, lsolid, lvoid, symmetries)
+        return FourierBlob(p, sz, sesolid, sevoid, symmetries)
     end
 end
 Blob(sz...; kw...) = Blob(sz; kw...)

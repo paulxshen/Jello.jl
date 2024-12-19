@@ -1,9 +1,8 @@
 struct FourierBlob
-    pre::AbstractArray
-    pim::AbstractArray
+    p::AbstractArray
     sz
-    lsolid
-    lvoid
+    sesolid
+    sevoid
     symmetries
 end
 Base.size(m::FourierBlob) = m.sz
@@ -31,18 +30,22 @@ Args
 
 # end
 
-function (m::FourierBlob)(sharpness::Real=0.99)
-    @unpack pre, pim, sz, lsolid, lvoid, symmetries, = m
-    @ignore_derivatives_vars lsolid, lvoid
-    T = eltype(pre)
-    α = T(1 - sharpness)
+function (m::FourierBlob)(sharpness::Real=0.998)
+    @unpack p, sz, sesolid, sevoid, symmetries, = m
+    T = eltype(p)
+    α = T(1 - sharpness) / 2
+    pre, pim = eachslice(p, dims=ndims(p))
     p = complex.(pre, pim)
     # margins = round.(Int, sz ./ size(a) .* 0.75)
     # i = range.(margins .+ 1, margins .+ sz)
     # r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
-    r = real(ifft(pad(p, 0, 0, sz .- size(p))))
+    a = real(ifft(pad(p, 0, 0, sz .- size(p))))
 
-    r = apply_symmetries(r, symmetries)
-    r = step(r + T(0.5), α)
+    a = apply_symmetries(a, symmetries)
+    a = step(a, α)
+    # if sharpness > 0
+    #     a = smooth(a, sesolid, sevoid)
+    # end
+    a
 end
 
