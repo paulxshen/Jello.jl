@@ -81,7 +81,7 @@ function update_loss!(o::AreaChangeOptimiser, l)
             o.η *= c
         end
     end
-    repair!(o.m)
+    # repair!(o.m)
 end
 update_loss!(a...) = 0
 
