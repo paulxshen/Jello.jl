@@ -1,4 +1,4 @@
-using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, ImageMorphology, Optimisers
+using Random, FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, ImageMorphology, Optimisers, Flux
 using Porcupine: keys, values, trim, round, floor, ceil
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 include("utils.jl")
