@@ -1,7 +1,7 @@
 # training a model to match a circular pattern
 
-include("../src/main.jl")
-# using Jello
+# include("../src/main.jl")
+using Jello
 using Random, CairoMakie, Flux
 
 Random.seed!(1)
@@ -10,11 +10,11 @@ lvoid = 10
 lsolid = 10
 solid_frac = 0.8
 m = Blob(n, n; solid_frac, lvoid, lsolid, symmetries=[])
+display(heatmap(m()))
 # m = Blob(n, n;  lvoid, lsolid, symmetries=[1,2], periodic=true)
+# display(heatmap(m()))
 
 # generate a sample
-a = m()
-display(heatmap(a))
 @show extrema(a)
 error("stop here")
 
