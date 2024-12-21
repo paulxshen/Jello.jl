@@ -1,22 +1,22 @@
 # training a model to match a circular pattern
 
-# include("../src/main.jl")
-using Jello
+include("../src/main.jl")
+# using Jello
 using Random, CairoMakie, Flux
 
 Random.seed!(1)
 n = 100
 lvoid = 10
 lsolid = 10
-solid_frac = 0.5
+solid_frac = 0.8
 m = Blob(n, n; solid_frac, lvoid, lsolid, symmetries=[])
-# m = Blob(n, n; solid_frac, lvoid, lsolid, symmetries=[1,2], periodic=true)
+# m = Blob(n, n;  lvoid, lsolid, symmetries=[1,2], periodic=true)
 
 # generate a sample
 a = m()
 display(heatmap(a))
 @show extrema(a)
-# error("stop here")
+error("stop here")
 
 opt = AreaChangeOptimiser(m; maxchange=0.2)
 opt_state = Flux.setup(opt, m)

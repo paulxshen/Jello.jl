@@ -57,8 +57,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         psz = min.(asz, round(asz / lmin))
 
         p = rand(T, psz)
-        # Isolid = p .> (1 - solid_frac)
-        # p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
+        Isolid = p .> (1 - solid_frac)
+        p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
         p = T.(p)
 
         J = LinearIndices(p)
@@ -105,6 +105,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         psz = round(sz / lmin)
         psz = min.(psz, sz)
         p = randn(T, (psz..., 2))
+        solid_frac = 0.5
         p[1] = solid_frac |> T
         p[length(p)÷2+1] = 0
         p[1] *= prod(sz)
