@@ -16,7 +16,7 @@ Keyword Args
 - `symmetries`: symmetry dimensions
 """
 function Blob(sz::Base.AbstractVecOrTuple;
-    lvoid=0, lsolid=0,
+    lvoid=0, lsolid=0, morph=true,
     symmetries=(), periodic=false, solid_frac=0.5,
     frame=nothing, start=1,
     F=Float32, T=F)
@@ -29,8 +29,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     rsolid = round(lsolid / 2 - 0.01) - 1
     rvoid = round(lvoid / 2 - 0.01) - 1
-    sesolid = rsolid > 0 ? se(rsolid, N) : nothing
-    sevoid = rvoid > 0 ? se(rvoid, N) : nothing
+    sesolid = morph && rsolid > 0 ? se(rsolid, N) : nothing
+    sevoid = morph && rvoid > 0 ? se(rvoid, N) : nothing
 
     if !periodic
         lmin /= sqrt(N)

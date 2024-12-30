@@ -115,6 +115,7 @@ function imframe(a0, frame=nothing, margin=0)
 end
 
 function smooth(a::T, sesolid=nothing, sevoid=nothing) where {T}
+    sesolid == sevoid == nothing && return a
     m0 = Array(a) .> 0.5
     m = m0
 
