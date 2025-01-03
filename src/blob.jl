@@ -51,10 +51,12 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
         asz = collect(sz)
         for s = symmetries
-            asz[s] = round(asz[s] / 2 + 0.01)
+            asz[s] = max(1, round(asz[s] / 2))
         end
         asz = Tuple(asz)
+
         psz = min.(asz, round(asz / lgrid))
+        psz = max.(1, psz)
 
         p = rand(T, psz)
         Isolid = p .> (1 - solid_frac)
@@ -67,23 +69,27 @@ function Blob(sz::Base.AbstractVecOrTuple;
             A = 1
         else
             A = map(CartesianIndices(Tuple(asz))) do i
-                r = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
-                r = max.(1, r)
-                r = min.(r, psz)
+                v = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
+                v = max.(1, v)
+                v = min.(v, psz)
 
-                js = collect(Base.product(Set.(zip(floor(r), ceil(r)))...))
-                # zs = norm.(collect.((r,) .- js))
+                js = collect(Base.product(unique.(zip(floor(v), ceil(v)))...))
+                # zs = norm.(collect.((v,) .- js))
                 # Z = sum(zs)
                 # n = length(js)
                 stack(vec([[
-                    # I[i], J[j...], prod((cospi.(j - r) + 1) / 2)
-                    I[i], J[j...], prod(1 - abs.(j - r))
+                    # I[i], J[j...], prod((cospi.(j - v) + 1) / 2)
+                    I[i], J[j...], prod(1 - abs.(j - v))
                     # I[i], J[j...], n == 1 ? 1 : (Z - z) / Z / (n - 1)
                 ] for j = js]))
                 # ] for (j, z) = zip(js, zs)]))
             end
             A = reduce(hcat, vec(A))
-            A = sparse(eachrow(A)...)
+
+            I, J, V = eachrow(A)
+            m = prod(asz)
+            n = prod(psz)
+            A = sparse(I, J, V, m, n)
         end
         p = vec(p)
 
