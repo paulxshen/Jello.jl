@@ -16,7 +16,7 @@ Base.size(m::InterpBlob) = m.sz
 
 function (m::InterpBlob)(sharpness::Real=0.998;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
-    @ignore_derivatives_vars (A, frame, conv,)
+    @nogradvars (A, frame, conv,)
 
     T = eltype(p)
     α = T(1 - sharpness) / 2
