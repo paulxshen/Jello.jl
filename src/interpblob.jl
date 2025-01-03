@@ -12,6 +12,7 @@ struct InterpBlob
     conv
 end
 Base.size(m::InterpBlob) = m.sz
+@functor InterpBlob (p, A, conv,)
 
 function (m::InterpBlob)(sharpness::Real=0.998;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m

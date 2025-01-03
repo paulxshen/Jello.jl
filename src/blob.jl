@@ -33,11 +33,11 @@ function Blob(sz::Base.AbstractVecOrTuple;
     sevoid = morph && rvoid > 0 ? se(rvoid, N) : nothing
 
     if !periodic
-        lmin /= sqrt(N)
-        lmin = max(1, lmin)
+        Rf = round(0.5lmin - 0.01)
+        lgrid = lmin / 2
+        lgrid = max(1, lgrid)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
-        Rf = round(0.5lmin - 0.01)
         if isnothing(frame)
             margin = 0
         else
@@ -54,7 +54,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             asz[s] = round(asz[s] / 2 + 0.01)
         end
         asz = Tuple(asz)
-        psz = min.(asz, round(asz / lmin))
+        psz = min.(asz, round(asz / lgrid))
 
         p = rand(T, psz)
         Isolid = p .> (1 - solid_frac)
@@ -125,3 +125,6 @@ Blob(sz...; kw...) = Blob(sz; kw...)
 # """
 
 Optimisers.maywrite(x::AbstractSparseArray) = true
+jump(m::InterpBlob) = (2^length(m.symmetries)) * sum((m.sesolid, m.sevoid)) do a
+    a == nothing ? 0 : sum(a)
+end

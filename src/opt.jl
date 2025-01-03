@@ -8,9 +8,10 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     maxchange
     ls
     function AreaChangeOptimiser(m;
-        opt=Momentum(1, 0.8),
+        opt=Momentum(1, 0.0),
         #  opt=Adam(1, (0.8, 0.9)),
-        minchange=0, maxchange=0.1)
+        minchange=0.001,
+        maxchange=0.1)
         η = nothing
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [])
@@ -39,7 +40,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     overshot = undershot = false
     while (1.0f-15 < o.η < 1.0f15) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
         if i > 0
-            c = T(1.2)
+            c = T(1.05)
             if dA > maxdA
                 o.η /= c
                 overshot = true
