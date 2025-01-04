@@ -38,7 +38,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     i = 0
     overshot = undershot = false
-    while (1.0f-15 < o.η < 1.0f15) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
+    while (1.0f-8 < o.η < 1.0f8) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
         if i > 0
             c = T(1.05)
             if dA > maxdA
@@ -56,6 +56,10 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         dA = sum(abs, a - a0)
         i += 1
     end
+
+    m.p .= min.(1 + Δ, m.p)
+    m.p .= max.(0 - Δ, m.p)
+    x̄ = x0 - m.p
     m.p .= x0
 
     print("debug: ")

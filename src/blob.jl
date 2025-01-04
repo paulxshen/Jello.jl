@@ -51,7 +51,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
         asz = collect(sz)
         for s = symmetries
-            asz[s] = max(1, round(asz[s] / 2))
+            asz[s] = round(asz[s] / 2 + 0.01)
         end
         asz = Tuple(asz)
 

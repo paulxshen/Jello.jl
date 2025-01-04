@@ -1,3 +1,5 @@
+const Δ = 2
+
 struct InterpBlob
     p::AbstractArray
     A
@@ -17,6 +19,10 @@ Base.size(m::InterpBlob) = m.sz
 function (m::InterpBlob)(sharpness::Real=0.998;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
     @nogradvars (A, frame, conv,)
+
+
+    p = min.(1 + Δ, p)
+    p = max.(-Δ, p)
 
     T = eltype(p)
     α = T(1 - sharpness) / 2
