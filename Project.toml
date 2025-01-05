@@ -1,7 +1,7 @@
 name = "Jello"
 uuid = "6872b481-e419-48a0-81d2-be4ee5684529"
 authors = ["Paul Shen <pxshen@alumni.stanford.edu>"]
-version = "1.0.4"
+version = "1.0.5"
 
 [deps]
 ArrayPadding = "fe5ef43c-4912-423d-9170-4bd5cb6a013a"
@@ -21,7 +21,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 [compat]
 ArrayPadding = "1"
 FFTW = "1"
-Flux = "0.16,0.17,1"
+Flux = "0.16,0.17,0.18,0.19,1"
 Functors = "0.5,0.6"
 ImageMorphology = "0.4,0.5,0.6"
 LinearAlgebra = "1"

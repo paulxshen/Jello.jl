@@ -68,7 +68,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         if asz == psz
             A = 1
         else
-            A = map(CartesianIndices(Tuple(asz))) do i
+            A = map(CartesianIndices(asz)) do i
                 v = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
                 v = max.(1, v)
                 v = min.(v, psz)
@@ -89,6 +89,11 @@ function Blob(sz::Base.AbstractVecOrTuple;
             I, J, V = eachrow(A)
             m = prod(asz)
             n = prod(psz)
+
+            I = min.(I, m)
+            I = max.(I, 1)
+            J = min.(J, n)
+            J = max.(J, 1)
             A = sparse(I, J, V, m, n)
         end
         p = vec(p)
