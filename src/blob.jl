@@ -90,6 +90,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
             m = prod(asz)
             n = prod(psz)
 
+            I = round.(Int, I)
+            J = round.(Int, J)
             I = min.(I, m)
             I = max.(I, 1)
             J = min.(J, n)
