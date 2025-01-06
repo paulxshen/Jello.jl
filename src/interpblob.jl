@@ -1,4 +1,4 @@
-const Δ = 2
+const Δ = 4
 
 struct InterpBlob
     p::AbstractArray

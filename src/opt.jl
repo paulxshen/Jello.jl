@@ -12,6 +12,7 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
         #  opt=Adam(1, (0.8, 0.9)),
         minchange=0.001,
         maxchange=0.1)
+        @show minchange, maxchange
         η = nothing
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [])
@@ -38,7 +39,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     i = 0
     overshot = undershot = false
-    while (1.0f-8 < o.η < 1.0f8) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
+    while (1.0f-9 < o.η < 1.0f9) && (i == 0 || (dA > maxdA && !undershot) || (dA < mindA && !overshot))
         if i > 0
             c = T(1.05)
             if dA > maxdA
@@ -65,7 +66,6 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     print("debug: ")
     @show o.η, dA
     println("fractional change in design: $(dA/A)")
-    println("")
 
     return s, x̄
 end
@@ -78,12 +78,11 @@ end
 
 function update_loss!(o::AreaChangeOptimiser, l)
     push!(o.ls, l)
-    c = 1.2
     if length(o.ls) > 1
         if o.ls[end] > o.ls[end-1]
-            o.η /= c
+            o.η /= 1.5
         else
-            o.η *= c
+            o.η *= 1.5
         end
     end
     # repair!(o.m)
