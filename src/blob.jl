@@ -16,7 +16,7 @@ Keyword Args
 - `symmetries`: symmetry dimensions
 """
 function Blob(sz::Base.AbstractVecOrTuple;
-    lvoid=0, lsolid=0, morph=true,
+    lvoid=0, lsolid=0, morph=false,
     symmetries=(), periodic=false, solid_frac=0.5,
     frame=nothing, start=1,
     F=Float32, T=F)
@@ -34,7 +34,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     if !periodic
         Rf = round(0.5lmin - 0.01)
-        lgrid = lmin / 2
+        lgrid = lmin / sqrt(N)
         lgrid = max(1, lgrid)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
