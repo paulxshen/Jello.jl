@@ -26,11 +26,11 @@ function (m::InterpBlob)(sharp=true;)
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a)
     a = dropdims(a, dims=(N + 1, N + 2))
-    stepfunc.(a)
+    a = stepfunc.(a)
     # if sharp
     #     a = stepfunc(a)
     # end
-    # a = imframe(a, frame, margin)
+    a = imframe(a, frame, margin)
     # # if sharp
     # #     a = smooth(a, sesolid, sevoid)
     # # end
