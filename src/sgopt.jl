@@ -68,7 +68,7 @@ function Optimisers.apply!(o::SurrogateOptimiser, s, x, x̄)
 
 
     s, x̄ = Optimisers.apply!(o.opt, s, x, x̄)
-    # println("surrogate taking $(o.ntrust) steps")
+    # println("surrogate taking $(o.ntrust) stepfuncs")
     # for i = 1:(1+o.ntrust)
     #     s, x̄ = Optimisers.apply!(o.opt, s, x, x̄)
     #     if i > 1

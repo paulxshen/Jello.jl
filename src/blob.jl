@@ -26,15 +26,48 @@ function Blob(sz::Base.AbstractVecOrTuple;
     @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
 
-
     rsolid = round(lsolid / 2 - 0.01) - 1
     rvoid = round(lvoid / 2 - 0.01) - 1
-    sesolid = morph && rsolid > 0 ? se(rsolid, N) : nothing
-    sevoid = morph && rvoid > 0 ? se(rvoid, N) : nothing
+    sesolid = morph && rsolid > 0 ? se(rsolid, N) : 0
+    sevoid = morph && rvoid > 0 ? se(rvoid, N) : 0
 
     if !periodic
-        Rf = round(0.5lmin - 0.01)
-        lgrid = lmin / sqrt(N)
+        # Rf = round(0.8lmin - 0.01)
+        # if isnothing(frame)
+        #     margin = 0
+        # else
+        #     margin = 2Rf
+        #     if isa(frame, Number)
+        #         frame = fill(frame, sz + 2margin)
+        #     else
+        #         frame = frame[range.(start - margin, start + sz + margin - 1)...]
+        #     end
+        # end
+
+        # psz = collect(sz)
+        # for s = symmetries
+        #     psz[s] = round(psz[s] / 2 + 0.01)
+        # end
+        # psz = Tuple(psz)
+        # psz = max.(1, psz)
+
+        # p = rand(T, psz)
+        # Isolid = p .> (1 - solid_frac)
+        # p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
+        # p = T.(p)
+
+        # n = 2Rf + 1
+        # conv = Conv((n, n), 1 => 1)
+        # conv.weight .= ball(Rf, N; normalized=true) do x
+        #     (Rf - x + 1) / Rf
+        # end
+
+        # return ConvBlob(p, sz, sesolid, sevoid, frame, margin, symmetries, conv)
+
+        # elseif false
+
+        Rf = round(0.8lmin - 0.01)
+        lgrid = lmin / 3
         lgrid = max(1, lgrid)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
@@ -59,8 +92,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         psz = max.(1, psz)
 
         p = rand(T, psz)
-        Isolid = p .> (1 - solid_frac)
-        p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
+        p = p .> (1 - solid_frac)
+        # p += 0.1randn(T, size(p))
         p = T.(p)
 
         J = LinearIndices(p)
@@ -103,17 +136,10 @@ function Blob(sz::Base.AbstractVecOrTuple;
         n = 2Rf + 1
         conv = Conv((n, n), 1 => 1)
         conv.weight .= ball(Rf, N; normalized=true) do x
-            # gaussian(x / σ)
-            1
+            (Rf - x + 1) / Rf
         end
 
-
-        jump = if sesolid == sevoid == nothing
-            0
-        else
-            minimum(sum.(filter(x -> x != nothing, [sesolid, sevoid])))
-        end
-        return InterpBlob(p, A, sz, asz, sesolid, sevoid, jump, frame, margin, symmetries, conv)
+        return InterpBlob(p, A, sz, asz, sesolid, sevoid, frame, margin, symmetries, conv)
     else
         psz = round(sz / lmin)
         psz = min.(psz, sz)
@@ -138,6 +164,4 @@ Blob(sz...; kw...) = Blob(sz; kw...)
 # """
 
 Optimisers.maywrite(x::AbstractSparseArray) = true
-jump(m::InterpBlob) = (2^length(m.symmetries)) * sum((m.sesolid, m.sevoid)) do a
-    a == nothing ? 0 : sum(a)
-end
+holesize(m::InterpBlob) = (2^length(m.symmetries)) * maximum(sum, (m.sesolid, m.sevoid))

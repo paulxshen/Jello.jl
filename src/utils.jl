@@ -73,15 +73,29 @@ function apply_symmetries(a, symmetries)
     end
     a
 end
-
-function step(a::AbstractArray{T}, α::Real) where {T}
-    m = a .> 0.5
-    α = T(α)
-    a = min.(1, a)
-    a = max.(0, a)
-    a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
+function stepfunc(a::T) where {T}
+    α = T(0.01)
+    # a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
+    α * tanh(3 * (a - T(0.5))) + (a > 0.5 ? 1 - α : α)
 end
+# stepfunc([1])
 
+# function stepfunc(a::AbstractArray{T}) where {T}
+#     m = a .> 0.5
+#     α = T(0.001)
+#     a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
+#     m .* (a - a + 1)
+#     # NNlib.sigmoid.(a - T(0.5))
+# end
+# function ChainRulesCore.rrule(::typeof(stepfunc), a)
+#     y = stepfunc(a)
+#     function pb(ȳ)
+#         println("stepfunc")
+#         # NoTangent(), ȳ .* 1 ./ (1 + 5 * abs.(2a - 1))
+#         NoTangent(), ȳ
+#     end
+#     return y, pb
+# end
 # function open(a, r)
 #     A = ignore_derivatives() do
 #         T = typeof(a)
@@ -114,16 +128,16 @@ function imframe(a0, frame=nothing, margin=0)
     end
 end
 
-function smooth(a::T, sesolid=nothing, sevoid=nothing) where {T}
-    sesolid == sevoid == nothing && return a
+function smooth(a::T, sesolid=0, sevoid=0) where {T}
+    sesolid == sevoid == 0 && return a
     m0 = Array(a) .> 0.5
     m = m0
 
     m = ignore_derivatives() do
-        if !isnothing(sesolid)
+        if sesolid != 0
             m = opening(m, sesolid)
         end
-        if !isnothing(sevoid)
+        if sevoid != 0
             m = closing(m, sevoid)
         end
         m

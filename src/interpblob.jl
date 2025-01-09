@@ -1,5 +1,3 @@
-const Δ = 4
-
 struct InterpBlob
     p::AbstractArray
     A
@@ -7,7 +5,6 @@ struct InterpBlob
     asz
     sesolid
     sevoid
-    jump
     frame
     margin::Int
     symmetries
@@ -16,16 +13,9 @@ end
 Base.size(m::InterpBlob) = m.sz
 @functor InterpBlob (p, A, conv,)
 
-function (m::InterpBlob)(sharpness::Real=0.998;)
+function (m::InterpBlob)(sharp=true;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
     @nogradvars (A, frame, conv,)
-
-
-    p = min.(1 + Δ, p)
-    p = max.(-Δ, p)
-
-    T = eltype(p)
-    α = T(1 - sharpness) / 2
 
     a = reshape(A * p, asz)
     a = apply_symmetries(a, symmetries, sz)
@@ -36,11 +26,13 @@ function (m::InterpBlob)(sharpness::Real=0.998;)
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a)
     a = dropdims(a, dims=(N + 1, N + 2))
-
-    a = step(a, α)
-    a = imframe(a, frame, margin)
-    if sharpness > 0
-        a = smooth(a, sesolid, sevoid)
-    end
-    a
+    stepfunc.(a)
+    # if sharp
+    #     a = stepfunc(a)
+    # end
+    # a = imframe(a, frame, margin)
+    # # if sharp
+    # #     a = smooth(a, sesolid, sevoid)
+    # # end
+    # a
 end
