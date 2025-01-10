@@ -28,6 +28,7 @@ for i = 1:20
     println("($i)")
     println("loss: $l")
 
+    opt.minchange = max(0.001, 0.2l^2)
     update_loss!(opt, l)
     Flux.update!(opt_state, m, dldm)
     heatmap(m()) |> display
