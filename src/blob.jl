@@ -106,20 +106,26 @@ function Blob(sz::Base.AbstractVecOrTuple;
                 v = max.(1, v)
                 v = min.(v, psz)
 
-                js = collect(Base.product(unique.(zip(floor(v), ceil(v)))...))
+                js = vec(Base.product(unique.(zip(floor(v), ceil(v)))...))
                 # zs = norm.(collect.((v,) .- js))
                 # Z = sum(zs)
                 # n = length(js)
-                stack(vec([[
-                    # I[i], J[j...], prod((cospi.(j - v) + 1) / 2)
-                    I[i], J[j...], prod(1 - abs.(j - v))
-                    # I[i], J[j...], n == 1 ? 1 : (Z - z) / Z / (n - 1)
-                ] for j = js]))
+                # stack(vec([[
+                #     # I[i], J[j...], prod((cospi.(j - v) + 1) / 2)
+                #     I[i], J[j...], prod(1 - abs.(j - v))
+                #     # I[i], J[j...], n == 1 ? 1 : (Z - z) / Z / (n - 1)
+                # ] for j = js]))
                 # ] for (j, z) = zip(js, zs)]))
+                (
+                    fill(I[i], length(js)),
+                    [J[j...] for j in js] |> vec,
+                    [prod(1 - abs.(j - v)) for j in js] |> vec
+                )
             end
-            A = reduce(hcat, vec(A))
+            I = reduce(vcat, getindex.(A, 1))
+            J = reduce(vcat, getindex.(A, 2))
+            V = reduce(vcat, getindex.(A, 3))
 
-            I, J, V = eachrow(A)
             m = prod(asz)
             n = prod(psz)
 
