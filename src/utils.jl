@@ -1,3 +1,6 @@
+PMIN = -10
+PMAX = 10
+
 _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function ball(f, R, N=2; normalized=false)
     a = map(Base.product(fill(-R:R, N)...)) do r
