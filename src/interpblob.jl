@@ -15,7 +15,7 @@ Base.size(m::InterpBlob) = m.sz
 
 function (m::InterpBlob)(sharp=true;)
     @unpack p, A, symmetries, sz, asz, frame, margin, sevoid, sesolid, conv = m
-    @nogradvars (A, frame, conv,)
+    @nograd (A, frame, conv,)
 
     p = min.(PMAX, p)
     p = max.(PMIN, p)

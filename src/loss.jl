@@ -7,7 +7,7 @@ function tent(x, a, b)
     end
 end
 function loss(Avalssolid, Avalsvoid, rvalssolid, rvalsvoid, ker, a, frame, start)
-    # @nogradvars (ker, levels, frame)
+    # @nograd (ker, levels, frame)
     # if !isnothing(frame)
     # a = a0
     # a = if isnothing(frame)

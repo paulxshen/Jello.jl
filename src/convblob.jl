@@ -13,7 +13,7 @@ Base.size(m::ConvBlob) = m.sz
 
 function (m::ConvBlob)(sharp=true;)
     @unpack p, symmetries, sz, frame, margin, sevoid, sesolid, conv = m
-    @nogradvars (frame, conv,)
+    @nograd (frame, conv,)
     T = eltype(p)
     α = T(1 - sharp) / 2
 
