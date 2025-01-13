@@ -73,9 +73,9 @@ function update_loss!(o::AreaChangeOptimiser, l)
     push!(o.ls, l)
     if length(o.ls) > 1
         if o.ls[end] > o.ls[end-1]
-            o.η /= 1.2
+            o.η /= 1.1
         else
-            o.η *= 1.2
+            o.η *= 1.1
         end
     end
 end
