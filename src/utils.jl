@@ -50,7 +50,13 @@ function apply_symmetries(a, symmetries, sz)
         return a
     end
     for s = symmetries
-        a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
+        if isa(s, Int)
+            a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
+        end
+    end
+    if :inversion ∈ symmetries
+        a += reverse(a, dims=Tuple(1:ndims(a)))
+        a /= 2
     end
     a
 end

@@ -83,8 +83,17 @@ function Blob(sz::Base.AbstractVecOrTuple;
         end
 
         asz = collect(sz)
+        symmetries = map(symmetries) do s
+            try
+                parse(Int, s)
+            catch
+                Symbol(s)
+            end
+        end
         for s = symmetries
-            asz[s] = round(asz[s] / 2 + 0.01)
+            if isa(s, Int)
+                asz[s] = round(asz[s] / 2 + 0.01)
+            end
         end
         asz = Tuple(asz)
 
