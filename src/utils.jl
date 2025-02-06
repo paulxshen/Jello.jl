@@ -49,15 +49,33 @@ function apply_symmetries(a, symmetries, sz)
     if isempty(symmetries)
         return a
     end
+    if :diagonal ∈ symmetries
+        a += a'
+        a /= 2
+
+        # a += reverse(a, dims=1)'
+        # a /= 2
+    end
     for s = symmetries
+        # if :diagonal == s
+        #     a += a'
+        #     a /= 2
+        #     # a = (a + reverse(a, dims=1)') / 2
+        #     # a += reverse(a, dims=Tuple(1:ndims(a)))
+        #     # a /= 2
+        # end
         if isa(s, Int)
+            # a += reverse(a, dims=s)
+            # a /= 2
             a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
         end
     end
-    if :inversion ∈ symmetries
-        a += reverse(a, dims=Tuple(1:ndims(a)))
-        a /= 2
-    end
+    # if :inversion ∈ symmetries
+    #     for dims = 1:ndims(a)
+    #         a += reverse(a; dims)
+    #         a /= 2
+    #     end
+    # end
     a
 end
 

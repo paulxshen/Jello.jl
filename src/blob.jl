@@ -85,7 +85,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         asz = collect(sz)
         symmetries = map(symmetries) do s
             try
-                parse(Int, s)
+                parse(Int, string(s))
             catch
                 Symbol(s)
             end
