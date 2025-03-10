@@ -115,7 +115,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
                 v = max.(1, v)
                 v = min.(v, psz)
 
-                js = vec(Base.product(unique.(zip(floor(v), ceil(v)))...))
+                js = vec(Base.product(unique.(zip(floor.(Int, v), ceil.(Int, v)))...))
                 # zs = norm.(collect.((v,) .- js))
                 # Z = sum(zs)
                 # n = length(js)
