@@ -31,7 +31,7 @@ function circle(r, d=2; normalized=false)
     end
     a
 end
-function conic(r, d; normalized=false)
+function cone(r, d; normalized=false)
     r = round(Int, r - 0.01)
     a = [1 - norm(v) / (r + 1) for v = Base.product(fill(-r:r, d)...)] # circle
     a = max.(a, 0)
@@ -49,13 +49,6 @@ function apply_symmetries(a, symmetries, sz)
     if isempty(symmetries)
         return a
     end
-    if :diagonal ∈ symmetries
-        a += a'
-        a /= 2
-
-        # a += reverse(a, dims=1)'
-        # a /= 2
-    end
     for s = symmetries
         # if :diagonal == s
         #     a += a'
@@ -70,6 +63,13 @@ function apply_symmetries(a, symmetries, sz)
             a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
         end
     end
+    if :diagonal ∈ symmetries
+        a += a'
+        a /= 2
+
+        # a += reverse(a, dims=1)'
+        # a /= 2
+    end
     # if :inversion ∈ symmetries
     #     for dims = 1:ndims(a)
     #         a += reverse(a; dims)
@@ -79,27 +79,27 @@ function apply_symmetries(a, symmetries, sz)
     a
 end
 
-function apply_symmetries(a, symmetries)
-    for d = symmetries
-        d = string(d)
-        if startswith(d, "diag")
-            a = (a + a') / 2 # diagonal symmetry in this Ceviche challenge
-        elseif startswith(d, "anti")
-            a = (a + reverse(a, dims=1)') / 2
-            # elseif startswith(d ,"anti")
-        elseif d == "inversion"
-            a += reverse(a, dims=Tuple(1:ndims(a)))
-            a /= 2
-        else
-            d = ignore_derivatives() do
-                parse(Int, d)
-            end
-            a += reverse(a, dims=d)
-            a /= 2
-        end
-    end
-    a
-end
+# function apply_symmetries(a, symmetries)
+#     for d = symmetries
+#         d = string(d)
+#         if startswith(d, "diag")
+#             a = (a + a') / 2 # diagonal symmetry in this Ceviche challenge
+#         elseif startswith(d, "anti")
+#             a = (a + reverse(a, dims=1)') / 2
+#             # elseif startswith(d ,"anti")
+#         elseif d == "inversion"
+#             a += reverse(a, dims=Tuple(1:ndims(a)))
+#             a /= 2
+#         else
+#             d = ignore_derivatives() do
+#                 parse(Int, d)
+#             end
+#             a += reverse(a, dims=d)
+#             a /= 2
+#         end
+#     end
+#     a
+# end
 function stepfunc(a::T) where {T}
     α = T(0.01)
     # a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
@@ -142,18 +142,6 @@ end
 #     a .* A + B
 # end
 
-function imframe(a0, frame=nothing, margin=0)
-    if isnothing(frame)
-        a0
-    else
-        start = margin + 1
-        roi = @ignore_derivatives range.(start, start + size(a0) - 1)
-        b = Buffer(a0, size(frame)...)
-        copyto!(b, frame)
-        b[roi...] = a0
-        copy(b)
-    end
-end
 
 function smooth(a::T, sesolid=0, sevoid=0) where {T}
     sesolid == sevoid == 0 && return a

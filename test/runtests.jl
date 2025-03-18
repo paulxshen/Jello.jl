@@ -9,7 +9,8 @@ n = 100
 lvoid = 10
 lsolid = 10
 solid_frac = 0.5
-symmetries = [1, 2, :diagonal]
+# symmetries = [1, 2, :diagonal]
+symmetries = []
 
 # generate a sample
 m = Blob(n, n; solid_frac, lvoid, lsolid, symmetries)
@@ -17,7 +18,7 @@ display(heatmap(m()))
 # m = Blob(n, n;  lvoid, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-error("stop here")
+# error("stop here")
 
 opt = AreaChangeOptimiser(m)
 opt_state = Flux.setup(opt, m)

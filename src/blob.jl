@@ -20,6 +20,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
     symmetries=(), periodic=false, solid_frac=0.5,
     frame=nothing, start=1,
     F=Float32, T=F)
+
+    solid_frac = T(solid_frac)
     sz = Tuple(sz)
     symmetries = Tuple(symmetries)
     N = length(sz)
@@ -33,16 +35,6 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     if !periodic
         # Rf = round(0.8lmin - 0.01)
-        # if isnothing(frame)
-        #     margin = 0
-        # else
-        #     margin = 2Rf
-        #     if isa(frame, Number)
-        #         frame = fill(frame, sz + 2margin)
-        #     else
-        #         frame = frame[range.(start - margin, start + sz + margin - 1)...]
-        #     end
-        # end
 
         # psz = collect(sz)
         # for s = symmetries
@@ -62,25 +54,15 @@ function Blob(sz::Base.AbstractVecOrTuple;
         #     (Rf - x + 1) / Rf
         # end
 
-        # return ConvBlob(p, sz, sesolid, sevoid, frame, margin, symmetries, conv)
+        # return ConvBlob(p, sz, sesolid, sevoid, frame, symmetries, conv)
 
         # elseif false
 
         Rf = round(0.8lmin - 0.01)
-        lgrid = lmin / 3
+        lgrid = lmin / 2.5
         lgrid = max(1, lgrid)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
-        if isnothing(frame)
-            margin = 0
-        else
-            margin = 2Rf
-            if isa(frame, Number)
-                frame = fill(frame, sz + 2margin)
-            else
-                frame = frame[range.(start - margin, start + sz + margin - 1)...]
-            end
-        end
 
         asz = collect(sz)
         symmetries = map(symmetries) do s
@@ -100,10 +82,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         psz = min.(asz, round(asz / lgrid))
         psz = max.(1, psz)
 
-        p = rand(T, psz)
-        p = p .> (1 - solid_frac)
-        # p += 0.1randn(T, size(p))
-        p = T.(p)
+        d = T(0.1)
+        p = T(0.5) + 2d * (solid_frac - 1 + rand(T, psz))
 
         J = LinearIndices(p)
         I = LinearIndices(asz)
@@ -154,7 +134,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             (Rf - x + 1) / Rf
         end
 
-        return InterpBlob(p, A, sz, asz, sesolid, sevoid, frame, margin, symmetries, conv)
+        return InterpBlob(p, A, sz, asz, sesolid, sevoid, frame, symmetries, conv)
     else
         psz = round(sz / lmin)
         psz = min.(psz, sz)
