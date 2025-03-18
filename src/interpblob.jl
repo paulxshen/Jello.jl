@@ -16,9 +16,7 @@ function (m::InterpBlob)(sharp=true;)
     @unpack p, A, symmetries, sz, asz, frame, sevoid, sesolid, conv = m
     @nograd (A, frame, conv,)
     T = eltype(p)
-
-    p = min.(PMAX, p)
-    p = max.(PMIN, p)
+    p = sigmoid.(p - T(0.5))
 
     a = reshape(A * p, asz)
     a = apply_symmetries(a, symmetries, sz)

@@ -1,5 +1,3 @@
-PMIN = -10
-PMAX = 10
 
 _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function ball(f, R, N=2; normalized=false)
@@ -103,7 +101,7 @@ end
 function stepfunc(a::T) where {T}
     α = T(0.01)
     # a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
-    α * tanh(3 * (a - T(0.5))) + (a > 0.5 ? 1 - α : α)
+    α * tanh((a - T(0.5))) + (a > 0.5 ? 1 - α : α)
 end
 # stepfunc([1])
 

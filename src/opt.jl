@@ -25,8 +25,11 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     @assert all(m.p .== x)
     @assert length(xs) == length(ls)
     if length(xs) > 1 && ls[end] > ls[end-1]
-        w = 0.7
+        w = 0.85
         m.p .== w * xs[end-1] + (1 - w) * xs[end]
+        o.η /= 1.5
+    else
+        o.η *= 1.2
     end
     a0 = m() .> 0.5
 
@@ -77,11 +80,4 @@ end
 
 function update_loss!(o::AreaChangeOptimiser, l)
     push!(o.ls, l)
-    if length(o.ls) > 1
-        if o.ls[end] > o.ls[end-1]
-            o.η /= 1.1
-        else
-            o.η *= 1.1
-        end
-    end
 end
