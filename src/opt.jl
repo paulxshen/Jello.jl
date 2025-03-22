@@ -59,8 +59,6 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
         x̄ = T(o.η * x̄0)
         m.p .= x0 - x̄
-        m.p .= max.(PMIN, m.p)
-        m.p .= min.(PMAX, m.p)
         a = m() .> 0.5
         dA = sum(abs, a - a0)
         i += 1
