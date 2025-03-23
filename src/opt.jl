@@ -9,10 +9,10 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     xs
     ls
     function AreaChangeOptimiser(m;
-        opt=Momentum(1, 0.0),
+        opt=Momentum(1, 0.7),
         #  opt=Adam(1, (0.8, 0.9)),
         minchange=0.001,
-        maxchange=0.05)
+        maxchange=0.03)
         η = 1
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [], [])
@@ -25,8 +25,8 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     @assert all(m.p .== x)
     @assert length(xs) == length(ls)
     if length(xs) > 1 && ls[end] > ls[end-1]
-        w = 0.85
-        m.p .== w * xs[end-1] + (1 - w) * xs[end]
+        # w = 0.85
+        # m.p .== w * xs[end-1] + (1 - w) * xs[end]
         o.η /= 1.5
     else
         o.η *= 1.2
@@ -67,7 +67,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     m.p .= x0
 
     @debug o.η, dA
-    println("fractional change in design: $(dA/A)")
+    println("fractional change: $(dA/A)")
 
     return s, x̄
 end

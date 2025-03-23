@@ -1,6 +1,7 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, ImageMorphology, Optimisers, Functors, Flux, ChainRulesCore
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, Optimisers, Flux
 using Porcupine: keys, values, trim, round, floor, ceil
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
+using Flux: @functor
 include("utils.jl")
 include("loss.jl")
 # include("convblob.jl")
