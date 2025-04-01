@@ -78,7 +78,7 @@ function Optimisers.apply!(o::SurrogateOptimiser, s, x, x̄)
     return s, x̄
 end
 
-function Optimisers.solid_frac(o::SurrogateOptimiser, x)
-    opt_state = Optimisers.solid_frac(o.opt, x)
+function Optimisers.init(o::SurrogateOptimiser, x)
+    opt_state = Optimisers.init(o.opt, x)
 end
 

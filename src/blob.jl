@@ -17,14 +17,16 @@ Keyword Args
 """
 function Blob(sz::Base.AbstractVecOrTuple;
     lvoid=0, lsolid=0, morph=false,
-    symmetries=(), periodic=false, solid_frac=0.5,
+    symmetries=(), periodic=false,
+    init=0.5,
     frame=nothing, start=1,
     F=Float32, T=F)
 
-    solid_frac = T(solid_frac)
+    init = T(init)
     sz = Tuple(sz)
     symmetries = Tuple(symmetries)
     N = length(sz)
+    @assert N == 2
     @assert lsolid > 0 || lvoid > 0
     lmin = max(lsolid, lvoid)
 
@@ -34,32 +36,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
     sevoid = morph && rvoid > 0 ? se(rvoid, N) : 0
 
     if !periodic
-        # Rf = round(0.8lmin - 0.01)
-
-        # psz = collect(sz)
-        # for s = symmetries
-        #     psz[s] = round(psz[s] / 2 + 0.01)
-        # end
-        # psz = Tuple(psz)
-        # psz = max.(1, psz)
-
-        # p = rand(T, psz)
-        # Isolid = p .> (1 - solid_frac)
-        # p = Isolid .* (0.5 / solid_frac * (p - 1 + solid_frac) + 0.5) + (!(Isolid)) .* (0.5 / (1 - solid_frac) * p)
-        # p = T.(p)
-
-        # n = 2Rf + 1
-        # conv = Conv((n, n), 1 => 1)
-        # conv.weight .= ball(Rf, N; normalized=true) do x
-        #     (Rf - x + 1) / Rf
-        # end
-
-        # return ConvBlob(p, sz, sesolid, sevoid, frame, symmetries, conv)
-
-        # elseif false
-
-        Rf = round(0.8lmin - 0.01)
-        lgrid = lmin / 2.5
+        Rf = round(0.6lmin - 0.01)
+        lgrid = lmin / 2
         lgrid = max(1, lgrid)
         # σ = T(0.5lmin)
         # Rf = round(1.5σ - 0.01)
@@ -72,30 +50,43 @@ function Blob(sz::Base.AbstractVecOrTuple;
                 Symbol(s)
             end
         end
-        for s = symmetries
-            if isa(s, Int)
-                asz[s] = round(asz[s] / 2 + 0.01)
-            end
-        end
         asz = Tuple(asz)
 
         psz = min.(asz, round(asz / lgrid))
         psz = max.(1, psz)
 
-        d = T(0.1)
-        p = T(0.5) + 2d * (solid_frac - 1 + rand(T, psz))
-
-        J = LinearIndices(p)
+        J = LinearIndices(psz)
         I = LinearIndices(asz)
         if asz == psz
             A = 1
         else
+            ei = Base.product(fill([-1, 1], N)...) / sqrt(N) |> vec |> F
             A = map(CartesianIndices(asz)) do i
                 v = T.(0.5 + (Tuple(i) - 0.5) .* psz ./ asz)
                 v = max.(1, v)
                 v = min.(v, psz)
 
-                js = vec(Base.product(unique.(zip(floor.(Int, v), ceil.(Int, v)))...))
+                t = map(v) do x
+                    f = floor(Int, x)
+                    c = ceil(Int, x)
+                    if f == c
+                        if f == 1
+                            c += 1
+                        else
+                            f -= 1
+                        end
+                    end
+                    f, c
+                end
+                f = getindex.(t, 1)
+                c = getindex.(t, 2)
+                js = Base.product(zip(f, c)...)
+                o = mean(js) |> F
+                qs = [v - o] .⋅ ei
+                V = (qs .> 0) .* qs + (1 - sum(abs, qs) / 2) / 4
+                # @assert sum(V) ≈ 1
+
+                # js = vec(Base.product(unique.(zip(floor.(Int, v), ceil.(Int, v)))...))
                 # zs = norm.(collect.((v,) .- js))
                 # Z = sum(zs)
                 # n = length(js)
@@ -108,7 +99,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
                 (
                     fill(I[i], length(js)),
                     [J[j...] for j in js] |> vec,
-                    [prod(1 - abs.(j - v)) for j in js] |> vec
+                    # [prod(1 - abs.(j - v)) for j in js] |> vec
+                    V
                 )
             end
             I = reduce(vcat, getindex.(A, 1))
@@ -126,7 +118,14 @@ function Blob(sz::Base.AbstractVecOrTuple;
             J = max.(J, 1)
             A = sparse(I, J, V, m, n)
         end
-        p = vec(p)
+        if isa(init, Real)
+
+            d = T(0.1)
+            p = T(0.5) + 2d * (init - 1 + rand(T, psz))
+        else
+            p = Array(A) \ vec(init)
+            p = reshape(p, psz)
+        end
 
         n = 2Rf + 1
         conv = Conv((n, n), 1 => 1)
@@ -139,8 +138,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
         psz = round(sz / lmin)
         psz = min.(psz, sz)
         p = randn(T, (psz..., 2))
-        solid_frac = 0.5
-        p[1] = solid_frac |> T
+        init = 0.5
+        p[1] = init |> T
         p[length(p)÷2+1] = 0
         p[1] *= prod(sz)
 

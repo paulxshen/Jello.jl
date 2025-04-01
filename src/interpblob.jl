@@ -12,14 +12,15 @@ end
 Base.size(m::InterpBlob) = m.sz
 @functor InterpBlob (p, A, conv,)
 
-function (m::InterpBlob)(sharp=true;)
+function (m::InterpBlob)()
     @unpack p, A, symmetries, sz, asz, frame, sevoid, sesolid, conv = m
     @nograd (A, frame, conv,)
     T = eltype(p)
+    p = apply_symmetries(p, symmetries)
+    p = vec(p)
     p = sigmoid.(p - T(0.5))
 
     a = reshape(A * p, asz)
-    a = apply_symmetries(a, symmetries, sz)
 
     N = ndims(a)
     Rf = (size(conv.weight, 1) - 1) ÷ 2

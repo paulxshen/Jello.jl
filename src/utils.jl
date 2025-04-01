@@ -43,7 +43,7 @@ function se(r, d=2)
     # display(heatmap(a))
     centered(a)
 end
-function apply_symmetries(a, symmetries, sz)
+function apply_symmetries(a, symmetries)
     if isempty(symmetries)
         return a
     end
@@ -56,9 +56,9 @@ function apply_symmetries(a, symmetries, sz)
         #     # a /= 2
         # end
         if isa(s, Int)
-            # a += reverse(a, dims=s)
-            # a /= 2
-            a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
+            a += reverse(a, dims=s)
+            a /= 2
+            # a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
         end
     end
     if :diagonal ∈ symmetries

@@ -21,7 +21,7 @@ Args
 - `rvalssolid`: same as `rmin` but only applied to fill (bright) features
 - `rvalsvoid`: ditto
 """
-# function FourierBlob(sz...; nbasis=4, solid_frac=nothing, contrast=1, T=Float32, rmin=nothing, rvalssolid=rmin, rvalsvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
+# function FourierBlob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rvalssolid=rmin, rvalsvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
 #     if length(nbasis) == 1
 #         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
 #     end
