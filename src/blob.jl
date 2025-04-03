@@ -11,7 +11,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     # @assert lsolid > 0 || lvoid > 0
     # lmin = max(lsolid, lvoid)
 
-    margins = ceil(Int, 4lmin)
+    margins = ceil(Int, sz / 2)
     asz = sz + margins
 
     psz = ceil.(Int, asz / lmin / 2) + 1
