@@ -1,8 +1,8 @@
 struct FourierBlob
     p::AbstractArray
     sz
-    sesolid
-    sevoid
+    asz
+    mask
     symmetries
 end
 Base.size(m::FourierBlob) = m.sz
@@ -21,33 +21,15 @@ Args
 - `rvalssolid`: same as `rmin` but only applied to fill (bright) features
 - `rvalsvoid`: ditto
 """
-# function FourierBlob(sz...; nbasis=4, init=nothing, contrast=1, T=Float32, rmin=nothing, rvalssolid=rmin, rvalsvoid=rmin, symmetries=[], diagonal_symmetry=false, verbose=true)
-#     if length(nbasis) == 1
-#         nbasis = round.(Int, nbasis ./ minimum(sz) .* sz)
-#     end
-#     d = length(sz)
-#     # a = complex.(randn(T, nbasis...), randn(T, nbasis...))
 
-# end
-
-function (m::FourierBlob)(sharp=true)
-    @unpack p, sz, sesolid, sevoid, symmetries, = m
-    T = eltype(p)
-    α = T(1 - sharp) / 2
+function (m::FourierBlob)()
+    @unpack p, sz, asz, mask, symmetries, = m
     pre, pim = eachslice(p, dims=ndims(p))
-    p = complex.(pre, pim)
-    # margins = round.(Int, sz ./ size(a) .* 0.75)
-    # i = range.(margins .+ 1, margins .+ sz)
-    # r = real(ifft(pad(a, 0, fill(0, ndims(a)), sz .+ 2 .* margins .- size(a))))[i...]
-    a = real(ifft(pad(p, 0, 0, sz .- size(p))))
-
+    p = complex.(pre, pim) .* mask
+    a = real(ifft(pad(p, 0, 0, asz - size(p))))
+    margins = (asz - sz) .÷ 2
+    a = a[range.(margins + 1, margins + sz)...]
     a = apply_symmetries(a, symmetries)
-    if sharp
-        a = stepfunc(a)
-    end
-    # if sharp > 0
-    #     a = smooth(a, sesolid, sevoid)
-    # end
-    a
+    a = stepfunc.(a)
 end
 

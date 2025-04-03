@@ -55,8 +55,9 @@ function apply_symmetries(a, symmetries)
         #     # a += reverse(a, dims=Tuple(1:ndims(a)))
         #     # a /= 2
         # end
-        if isa(s, Int)
-            a += reverse(a, dims=s)
+        dims = findfirst(==(string(s)), ["x", "y", "z"])
+        if !isnothing(dims)
+            a += reverse(a; dims)
             a /= 2
             # a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
         end
@@ -101,7 +102,8 @@ end
 function stepfunc(a::T) where {T}
     α = T(0.01)
     # a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
-    α * tanh((a - T(0.5))) + (a > 0.5 ? 1 - α : α)
+    # α * tanh((a - T(0.5))) + (a > 0.5 ? 1 - α : α)
+    α * tanh(a) + (a > 0 ? 1 - α : α)
 end
 # stepfunc([1])
 

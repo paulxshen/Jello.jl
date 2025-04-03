@@ -6,22 +6,22 @@ using Random, CairoMakie, Flux, LinearAlgebra
 # Random.seed!(1)
 
 n = 100
-lvoid = 10
-lsolid = 10
+lmin = 10
 init = 0.5
-# init = zeros(n, n)
-# init[1:10, 1:10] .= 2
+init = zeros(n, n)
+init[:, 40:60] .= 1
+# init[1:40, 1:40] .= 2
 # symmetries = [1, 2, :diagonal]
-# symmetries = [1]
-symmetries = []
+symmetries = ["x"]
+# symmetries = []
 
 # generate a sample
-m = Blob(n, n; init, lvoid, lsolid, symmetries)
+m = Blob(n, n; init, lmin, symmetries)
 display(heatmap(m()))
-# m = Blob(n, n;  lvoid, lsolid, symmetries=[1,2], periodic=true)
+# m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-error("stop here")
+# error("stop here")
 
 opt = AreaChangeOptimiser(m)
 opt_state = Flux.setup(opt, m)

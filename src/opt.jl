@@ -12,7 +12,7 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
         opt=Momentum(1, 0.6),
         #  opt=Adam(1, (0.8, 0.9)),
         minchange=0.001,
-        maxchange=0.03)
+        maxchange=0.01)
         η = 1
         A = sum(prod(size(m)))
         new(opt, m, η, A, minchange, maxchange, [], [])
@@ -27,7 +27,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     if length(xs) > 1 && ls[end] > ls[end-1]
         # w = 0.85
         # m.p .== w * xs[end-1] + (1 - w) * xs[end]
-        o.η /= 1.5
+        o.η /= 1.4
     else
         o.η *= 1.1
     end
