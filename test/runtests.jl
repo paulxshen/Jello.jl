@@ -8,12 +8,12 @@ using Random, CairoMakie, Flux, LinearAlgebra
 n = 100
 lmin = 10
 init = 0.5
-# init = zeros(n, n)
-# init[:, 40:60] .= 1
+init = zeros(n, n)
+init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
 # symmetries = [1, 2, :diagonal]
 # symmetries = ["x"]
-symmetries = []
+# symmetries = []
 
 # generate a sample
 m = Blob(n, n; init, lmin, symmetries)
@@ -21,7 +21,7 @@ display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-# error("stop here")
+error("stop here")
 
 opt = AreaChangeOptimiser(m; minchange=0.02, maxchange=0.1)
 opt_state = Flux.setup(opt, m)

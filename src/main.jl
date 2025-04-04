@@ -1,11 +1,9 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, SparseArrays, Porcupine, Optimisers, Flux
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, Flux
 using Porcupine: keys, values, trim, round, floor, ceil
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 using Flux: @functor
 include("utils.jl")
-include("loss.jl")
-# include("convblob.jl")
-include("interpblob.jl")
+include("convblob.jl")
 include("fourierblob.jl")
 include("blob.jl")
 include("opt.jl")
