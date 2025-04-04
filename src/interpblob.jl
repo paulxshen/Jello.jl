@@ -3,9 +3,6 @@ struct InterpBlob
     A
     sz
     asz
-    sesolid
-    sevoid
-    frame
     symmetries
     conv
 end
@@ -13,12 +10,11 @@ Base.size(m::InterpBlob) = m.sz
 @functor InterpBlob (p, A, conv,)
 
 function (m::InterpBlob)()
-    @unpack p, A, symmetries, sz, asz, frame, sevoid, sesolid, conv = m
-    @nograd (A, frame, conv,)
+    @unpack p, A, symmetries, sz, asz, conv = m
+    @nograd (A, conv,)
     T = eltype(p)
     p = apply_symmetries(p, symmetries)
     p = vec(p)
-    p = sigmoid.(p - T(0.5))
 
     a = reshape(A * p, asz)
 
@@ -28,5 +24,5 @@ function (m::InterpBlob)()
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a) .|> T
     a = dropdims(a, dims=(N + 1, N + 2))
-    a = stepfunc.(a)
+    stepfunc.(a)
 end
