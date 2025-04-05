@@ -7,15 +7,16 @@ Base.size(m::ConvBlob) = size(m.p)
 
 function (m::ConvBlob)()
     @unpack p, symmetries, conv = m
-    p = _ConvBlob(p, symmetries, conv, 0.1)
-    p = _ConvBlob(p, symmetries, conv, 0.01)
+    p = _ConvBlob(p, symmetries, conv, 0.1, true)
+    p = _ConvBlob(p, symmetries, conv, 0.01, false)
 end
 
-function _ConvBlob(a, symmetries, conv, α=0.01)
+function _ConvBlob(a::AbstractArray{T}, symmetries, conv, α=0.01, bound=false) where T
     @nograd (conv,)
 
-    # T = eltype(p)
-    # p = sigmoid.(p - T(0.5))
+    if bound
+        a = sigmoid.(a - T(0.5))
+    end
 
     N = ndims(a)
     Rf = (size(conv.weight, 1) - 1) ÷ 2
