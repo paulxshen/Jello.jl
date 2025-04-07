@@ -14,7 +14,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
     if !periodic
         σ = 0.5lmin
         R1 = round(2σ)
-        R2 = round(lmin / 2)
+        R2 = round(2σ)
+        # R2 = round(lmin)
 
         symmetries = string.(symmetries)
         if isa(init, Real)
@@ -34,7 +35,9 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
         n = 2R2 + 1
         conv2 = Conv((n, n), 1 => 1)
-        conv2.weight .= ball(x -> 1, R2, N; normalized=true)
+        conv2.weight .= ball(R2, N; normalized=true) do r
+            exp(-(r / σ)^2 / 2)
+        end
 
         return ConvBlob(p, symmetries, conv1, conv2)
     else

@@ -1,8 +1,8 @@
 # training a model to match a circular pattern
 ENV["JULIA_DEBUG"] = "Main"
 
-# include("../src/main.jl")
-using Jello
+include("../src/main.jl")
+# using Jello
 using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 
@@ -22,7 +22,7 @@ display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-# error("stop here")
+error("stop here")
 
 opt = AreaChangeOptimiser(m, 0.05)
 opt_state = Flux.setup(opt, m)

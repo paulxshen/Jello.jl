@@ -21,7 +21,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         # m.p .== w * xs[end-1] + (1 - w) * xs[end]
         o.minchange /= 1.4
     else
-        o.minchange *= 1.2
+        o.minchange *= 1.1
     end
 
     A = prod(size(m))
@@ -43,7 +43,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         a = m() .> 0.5
         dA = sum(abs, a - a0)
 
-        c *= 1.5
+        c *= 1.2
         i += 1
     end
 
