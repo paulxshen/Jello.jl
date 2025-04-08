@@ -8,7 +8,7 @@ Base.size(m::ConvBlob) = size(m.p)
 
 function (m::ConvBlob)()
     @unpack p, symmetries, conv1, conv2 = m
-    p = _ConvBlob(p, symmetries, conv1, 0.1)
+    # p = _ConvBlob(p, symmetries, conv1, 0.1)
     p = _ConvBlob(p, symmetries, conv2)
     # @debug p |> extrema
     p

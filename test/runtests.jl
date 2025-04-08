@@ -7,7 +7,7 @@ using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 
 n = 100
-lmin = 5
+lmin = 10
 init = 0.5
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
@@ -22,7 +22,7 @@ display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-error("stop here")
+# error("stop here")
 
 opt = AreaChangeOptimiser(m, 0.05)
 opt_state = Flux.setup(opt, m)

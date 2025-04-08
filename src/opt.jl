@@ -1,10 +1,12 @@
 mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     m
     minchange
+    ρ
+    x̄
     xs
     losses
-    function AreaChangeOptimiser(m, minchange=0.001)
-        new(m, minchange, [], [])
+    function AreaChangeOptimiser(m, minchange=0.001, ρ=0.5)
+        new(m, minchange, ρ, 0, [], [])
     end
 end
 
@@ -16,25 +18,28 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     @assert all(m.p .== x)
     @assert length(xs) == length(losses)
 
-    if length(xs) > 1 && losses[end] > losses[end-1]
+    if length(xs) > 1 && losses[end] >= losses[end-1]
         # w = 0.85
         # m.p .== w * xs[end-1] + (1 - w) * xs[end]
         o.minchange /= 1.4
+        o.ρ = 0.8o.ρ + 0.2
     else
         o.minchange *= 1.1
+        o.ρ *= 0.9
     end
 
+    o.x̄ = o.ρ * o.x̄ + (1 - o.ρ) * x̄
     A = prod(size(m))
     a0 = m() .> 0.5
     x0 = deepcopy(x)
-    x̄0 = deepcopy(x̄)
 
     dA = 0
     i = 0
     c = 1
     while i == 0 || c < 1f38 && dA < minchange * A
+        c *= 1.2
 
-        x̄ = c * A * x̄0
+        x̄ = c * A * o.x̄
         m.p .= x0 - x̄
 
         m.p .= min.(1, m.p)
@@ -43,14 +48,13 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         a = m() .> 0.5
         dA = sum(abs, a - a0)
 
-        c *= 1.2
         i += 1
     end
 
     x̄ = x0 - m.p
     m.p .= x0
 
-    @debug c, dA, o.minchange
+    @debug c, dA, o.minchange, o.ρ
     println("fractional change: $(dA/A)")
 
     return s, x̄
