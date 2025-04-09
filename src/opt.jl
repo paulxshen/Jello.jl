@@ -21,7 +21,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     if length(xs) > 1 && losses[end] >= losses[end-1]
         # w = 0.85
         # m.p .== w * xs[end-1] + (1 - w) * xs[end]
-        o.minchange /= 1.4
+        o.minchange /= 1.5
         o.ρ = 0.8o.ρ + 0.2
     else
         o.minchange *= 1.1
