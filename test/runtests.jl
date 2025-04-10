@@ -27,7 +27,7 @@ display(heatmap(m()))
 opt = AreaChangeOptimiser(m, 0.05)
 opt_state = Flux.setup(opt, m)
 circ = [norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n]
-for i = 1:20
+for i = 1:12
     global l, (dldm,) = Flux.withgradient(m) do m
         Flux.mae(circ, m())
     end

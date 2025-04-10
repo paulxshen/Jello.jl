@@ -16,14 +16,15 @@ function Blob(sz::Base.AbstractVecOrTuple;
         R1 = round(2σ)
         R2 = round(2σ)
         # R2 = round(lmin)
-        psz = sz + 2R1
+        R = R1
+        psz = sz + 2R
         symmetries = string.(symmetries)
         if isa(init, Real)
             # d = F(0.1)
             # p = F(0.5) + 2d * (init - 1 + rand(F, sz))
             p = rand(F, psz)
         else
-            p = init
+            p = pad(init, :replicate, R)
         end
 
         n = 2R1 + 1
