@@ -101,8 +101,8 @@ end
 # end
 function stepfunc(a::T, α) where {T}
     α = T(α)
-    # a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
-    α * tanh(a - T(0.5)) + (a > 0.5 ? 1 - α : α)
+    # α * tanh(a - T(0.5)) + (a > 0.5 ? 1 - α : α)
+    2α * (a - T(0.5)) + (a > 0.5 ? 1 - α : α)
     # α * tanh(a) + (a > 0 ? 1 - α : α)
 end
 # stepfunc([1])

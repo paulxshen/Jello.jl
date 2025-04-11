@@ -1,19 +1,20 @@
 mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     m
-    minchange
+    change
     ρ
     x̄
     xs
     losses
-    function AreaChangeOptimiser(m, minchange=0.001, ρ=0.5)
-        new(m, minchange, ρ, 0, [], [])
+    function AreaChangeOptimiser(m, change=0.001, ρ=0.1)
+        new(m, change, ρ, 0, [], [])
     end
 end
 
 function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
-    @unpack m, minchange, losses, xs = o
+    @unpack m, change, losses, xs = o
     push!(xs, x)
 
+    @debug extrema(m.p)
     @debug extrema(x̄)
     @assert all(m.p .== x)
     @assert length(xs) == length(losses)
@@ -21,11 +22,11 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     if length(xs) > 1 && losses[end] >= losses[end-1]
         # w = 0.85
         # m.p .== w * xs[end-1] + (1 - w) * xs[end]
-        o.minchange /= 1.5
+        o.change /= 1.4
         o.ρ = 0.8o.ρ + 0.2
     else
-        o.minchange *= 1.1
-        o.ρ *= 0.9
+        o.change *= 1.1
+        o.ρ *= 0.95
     end
 
     o.x̄ = o.ρ * o.x̄ + (1 - o.ρ) * x̄
@@ -35,11 +36,11 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     dA = 0
     i = 0
-    c = 1
-    while i == 0 || c < 1f38 && dA < minchange * A
+    c = 0.01
+    while i == 0 || c < 1f38 && dA < change * A
         c *= 1.2
 
-        x̄ = c * A * o.x̄
+        x̄ = c * o.x̄
         m.p .= x0 - x̄
 
         m.p .= min.(1, m.p)
@@ -54,7 +55,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     x̄ = x0 - m.p
     m.p .= x0
 
-    @debug c, dA, o.minchange, o.ρ
+    @debug c, dA, o.change, o.ρ
     println("fractional change: $(dA/A)")
 
     return s, x̄
