@@ -55,19 +55,17 @@ function apply_symmetries(a, symmetries)
         #     # a += reverse(a, dims=Tuple(1:ndims(a)))
         #     # a /= 2
         # end
-        dims = findfirst(==(string(s)), ["x", "y", "z"])
-        if !isnothing(dims)
-            a += reverse(a; dims)
+        if Symbol(s) == :diagonal
+            a += a'
             a /= 2
-            # a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
+        else
+            dims = findfirst(==(string(s)), ["x", "y", "z"])
+            if !isnothing(dims)
+                a += reverse(a; dims)
+                a /= 2
+                # a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
+            end
         end
-    end
-    if :diagonal ∈ symmetries
-        a += a'
-        a /= 2
-
-        # a += reverse(a, dims=1)'
-        # a /= 2
     end
     # if :inversion ∈ symmetries
     #     for dims = 1:ndims(a)

@@ -18,7 +18,6 @@ function Blob(sz::Base.AbstractVecOrTuple;
         # R2 = round(lmin)
         R = R1
         psz = sz + 2R
-        symmetries = string.(symmetries)
         if isa(init, Real)
             # d = F(0.1)
             # p = F(0.5) + 2d * (init - 1 + rand(F, sz))

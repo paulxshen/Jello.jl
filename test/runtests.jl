@@ -12,9 +12,9 @@ init = 0.5
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
-# symmetries = [:x, :diagonal]
+symmetries = [:x, :y, :diagonal]
 # symmetries = ["x"]
-symmetries = []
+# symmetries = []
 
 # generate a sample
 m = Blob(n, n; init, lmin, symmetries)

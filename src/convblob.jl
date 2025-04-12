@@ -16,17 +16,13 @@ end
 
 function _ConvBlob(a::AbstractArray{T}, symmetries, conv, α=0.001) where T
     @nograd (conv,)
-
-    # if bound
-    # a = sigmoid.(a - T(0.5))
-    # end
+    a = apply_symmetries(a, symmetries)
 
     N = ndims(a)
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a)
     a = dropdims(a, dims=(N + 1, N + 2))
 
-    a = apply_symmetries(a, symmetries)
     stepfunc.(a, α)
 end
 function ChainRulesCore.rrule(::typeof(foo), y::AbstractArray{T}) where T
