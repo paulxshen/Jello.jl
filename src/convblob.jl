@@ -29,14 +29,15 @@ function _ConvBlob(a::AbstractArray{T}, symmetries, conv, α=0.001) where T
     a = apply_symmetries(a, symmetries)
     stepfunc.(a, α)
 end
-function ChainRulesCore.rrule(::typeof(foo), p::AbstractArray)
-    y = foo(p)
+function ChainRulesCore.rrule(::typeof(foo), y::AbstractArray{T}) where T
     function pb(ȳ)
-        Z = maximum(abs, ȳ)
-        if Z > 0
-            ȳ /= Z
-        end
-        NoTangent(), ((ȳ .> 0) .== (y .> 0.5)) .* ȳ .* abs.(ȳ)
+        # Z = maximum(abs, ȳ)
+        # if Z > 0
+        #     ȳ /= Z
+        # end
+        r = y - T(0.5)
+        NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
+        # NoTangent(), ȳ
     end
     return y, pb
 end

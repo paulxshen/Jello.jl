@@ -34,7 +34,7 @@ for i = 1:20
     println("($i)")
     println("loss: $l")
 
-    opt.change = 0.5l
+    opt.change = l
     push!(opt.losses, l)
     Flux.update!(opt_state, m, dldm)
     heatmap(m()) |> display

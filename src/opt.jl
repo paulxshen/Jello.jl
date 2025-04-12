@@ -36,11 +36,11 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     dA = 0
     i = 0
-    c = 0.01
+    c = 1
     while i == 0 || c < 1f38 && dA < change * A
         c *= 1.2
 
-        x̄ = c * o.x̄
+        x̄ = A * c * o.x̄
         m.p .= x0 - x̄
 
         m.p .= min.(1, m.p)
