@@ -76,98 +76,29 @@ function apply_symmetries(a, symmetries)
     a
 end
 
-# function apply_symmetries(a, symmetries)
-#     for d = symmetries
-#         d = string(d)
-#         if startswith(d, "diag")
-#             a = (a + a') / 2 # diagonal symmetry in this Ceviche challenge
-#         elseif startswith(d, "anti")
-#             a = (a + reverse(a, dims=1)') / 2
-#             # elseif startswith(d ,"anti")
-#         elseif d == "inversion"
-#             a += reverse(a, dims=Tuple(1:ndims(a)))
-#             a /= 2
-#         else
-#             d = ignore_derivatives() do
-#                 parse(Int, d)
-#             end
-#             a += reverse(a, dims=d)
-#             a /= 2
-#         end
-#     end
-#     a
-# end
-function stepfunc(a::T, α) where {T}
-    α = T(α)
-    # α * tanh(a - T(0.5)) + (a > 0.5 ? 1 - α : α)
-    2α * (a - T(0.5)) + (a > 0.5 ? 1 - α : α)
-    # α * tanh(a) + (a > 0 ? 1 - α : α)
+Base.round(x::AbstractArray) = round.(x)
+function ChainRulesCore.rrule(::typeof(round), x)
+    y = round(x)
+    function pb(ȳ::T) where T
+        # T = eltype(y)
+        # r = x - 0.5 |> T
+        # NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
+        # NoTangent(), ȳ .* (2abs.(r) + 0.01) |> T
+        NoTangent(), ȳ
+    end
+    return y, pb
 end
-# stepfunc([1])
 
-# function stepfunc(a::AbstractArray{T}) where {T}
-#     m = a .> 0.5
-#     α = T(0.001)
-#     a = (m) .* (1 - 2α + 2α * a) + (!m) .* (2 * α * a)
-#     m .* (a - a + 1)
-#     # NNlib.sigmoid.(a - T(0.5))
-# end
-# function ChainRulesCore.rrule(::typeof(stepfunc), a)
-#     y = stepfunc(a)
+# foo(x) = x
+# # foo(x) = Base.round.(x)
+# function Zygote.rrule(::typeof(foo), x)
+#     y = foo(x)
 #     function pb(ȳ)
-#         println("stepfunc")
-#         # NoTangent(), ȳ .* 1 ./ (1 + 5 * abs.(2a - 1))
+#         @debug extrema(ȳ)
+#         # T = eltype(x)
+#         # r = x - T(0.5)
+#         # NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
 #         NoTangent(), ȳ
 #     end
-#     return y, pb
+#     y, pb
 # end
-# function open(a, r)
-#     A = ignore_derivatives() do
-#         T = typeof(a)
-#         m0 = Array(a) .> 0.5
-#         m = opening(m0, se(r, ndims(a)))
-#         T(m0 .== m)
-#     end
-#     a .* A
-# end
-# function close(a, r)
-#     A, B = ignore_derivatives() do
-#         T = typeof(a)
-#         m0 = Array(a) .> 0.5
-#         m = closing(m0, se(r, ndims(a)))
-#         T(m0 .== m), T(m .> m0)
-#     end
-#     a .* A + B
-# end
-
-
-function smooth(a::T, sesolid=0, sevoid=0) where {T}
-    sesolid == sevoid == 0 && return a
-    m0 = Array(a) .> 0.5
-    m = m0
-
-    m = ignore_derivatives() do
-        if sesolid != 0
-            m = opening(m, sesolid)
-        end
-        if sevoid != 0
-            m = closing(m, sevoid)
-        end
-        m
-    end
-    a .* (m .== m0) + (m .> m0)
-end
-
-function resize(a, sz)
-    if length(sz) == 1
-        return imresize(a, sz, method=ImageTransformations.Lanczos4OpenCV())
-    end
-    imresize(a, sz)
-end
-function ica(R, r, d)
-    (R == 0 || r == 0) && return 0
-    (R >= r + d) && return π * r^2
-    (r >= R + d) && return π * R^2
-    r^2 * acos((d^2 + r^2 - R^2) / (2d * r)) + R^2 * acos((d^2 + R^2 - r^2) / (2d * R)) - sqrt((R + r + d) * (R + r - d) * (R - r + d) * (r + d - R)) / 2
-
-end

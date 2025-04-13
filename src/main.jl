@@ -1,5 +1,4 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, Flux, ChainRulesCore
-using Porcupine: keys, values, trim, round, floor, ceil
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, Flux, ChainRulesCore, Zygote
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 using Flux: @functor
 include("utils.jl")

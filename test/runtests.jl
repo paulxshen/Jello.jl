@@ -7,14 +7,14 @@ using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 
 n = 100
-lmin = 10
+lmin = n / 10
 init = 0.5
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
-symmetries = [:x, :y, :diagonal]
+# symmetries = [:x, :y, :diagonal]
 # symmetries = ["x"]
-# symmetries = []
+symmetries = []
 
 # generate a sample
 m = Blob(n, n; init, lmin, symmetries)
@@ -24,9 +24,10 @@ display(heatmap(m()))
 
 # error("stop here")
 
-opt = AreaChangeOptimiser(m)
+opt = AreaChangeOptimiser(m, 0.05)
 opt_state = Flux.setup(opt, m)
 circ = [norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n]
+circ = 1.002circ - 0.001
 for i = 1:20
     global l, (dldm,) = Flux.withgradient(m) do m
         Flux.mae(circ, m())
@@ -34,7 +35,7 @@ for i = 1:20
     println("($i)")
     println("loss: $l")
 
-    opt.change = l
+    opt.change = min(0.5l, opt.change)
     push!(opt.losses, l)
     Flux.update!(opt_state, m, dldm)
     heatmap(m()) |> display

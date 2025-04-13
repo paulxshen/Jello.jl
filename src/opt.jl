@@ -64,7 +64,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
     x0 = deepcopy(x)
 
     dA = 0
-    invf(o.change * A; init=o.η, maxiters=300, reltol=0.2) do η
+    invf(o.change * A; init=o.η) do η
         o.η = η
         x̄ = A * η * o.x̄
         m.p .= x0 - x̄

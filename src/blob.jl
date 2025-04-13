@@ -13,8 +13,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     if !periodic
         σ = 0.5lmin
-        R1 = round(2σ)
-        R2 = round(2σ)
+        R1 = round(Int, 2σ)
+        R2 = round(Int, 2σ)
         # R2 = round(lmin)
         R = R1
         psz = sz + 2R
