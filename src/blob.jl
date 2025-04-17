@@ -25,7 +25,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         else
             p = pad(init, :replicate, R)
         end
-        p = F(0.25) + p / 2
+        # p = F(0.25) + p / 2
 
         n = 2R1 + 1
         conv1 = Conv((n, n), 1 => 1)

@@ -81,10 +81,10 @@ function ChainRulesCore.rrule(::typeof(round), x)
     y = round(x)
     function pb(ȳ::T) where T
         # T = eltype(y)
-        # r = x - 0.5 |> T
+        r = x - 0.5 |> T
         # NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
-        # NoTangent(), ȳ .* (2abs.(r) + 0.01) |> T
-        NoTangent(), ȳ
+        NoTangent(), ȳ .* (abs.(r) .< 0.1) |> T
+        # NoTangent(), ȳ
     end
     return y, pb
 end

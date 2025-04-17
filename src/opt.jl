@@ -11,7 +11,7 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     end
 end
 
-function invf(f, y; init=1, maxiters=100, reltol=0.1, abstol=reltol * abs(y))
+function invf(f, y; init=1, maxiters=100, reltol=0.2, abstol=reltol * abs(y))
     x = init
     a = b = nothing
     for i = 1:maxiters
@@ -20,14 +20,14 @@ function invf(f, y; init=1, maxiters=100, reltol=0.1, abstol=reltol * abs(y))
         if ϵ > 0
             b = x
             if isnothing(a)
-                x /= 1.2
+                x /= 2
             else
                 x = (x + a) / 2
             end
         else
             a = x
             if isnothing(b)
-                x *= 1.2
+                x *= 2
             else
                 x = (x + b) / 2
             end
@@ -50,7 +50,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         if losses[end] >= losses[end-1]
             # w = 0.85
             # m.p .== w * xs[end-1] + (1 - w) * xs[end]
-            o.change /= 1.4
+            o.change /= 1.5
             o.ρ = 0.8o.ρ + 0.2
         else
             o.change *= 1.1
