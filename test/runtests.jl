@@ -1,6 +1,6 @@
 # training a model to match a circular pattern
 ENV["JULIA_DEBUG"] = "Main"
-
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
 include("../src/main.jl")
 # using Jello
 using Random, CairoMakie, Flux, LinearAlgebra
@@ -12,7 +12,7 @@ init = 0.5
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
-# symmetries = [:x, :y, :diagonal]
+symmetries = [:x, :y, :diagonal]
 # symmetries = ["x"]
 symmetries = []
 
@@ -24,18 +24,25 @@ display(heatmap(m()))
 
 # error("stop here")
 
-opt = AreaChangeOptimiser(m, 0.05)
+opt = AreaChangeOptimiser(m, 0.1)
 opt_state = Flux.setup(opt, m)
-circ = [norm([x, y] - [n, n] / 2) < n / 4 for x = 1:n, y = 1:n]
-circ = 1.002circ - 0.001
-for i = 1:20
+c = [n, n] / 2 + 0.5
+circ = map(CartesianIndices((n, n))) do I
+    I = Tuple(I)
+    v = norm(I - c) - n / 4
+    v < 0 && return 1
+    v > 1 && return 0
+    1 - v
+end
+heatmap(circ) |> display
+
+for i = 1:30
     global l, (dldm,) = Flux.withgradient(m) do m
         Flux.mae(circ, m())
     end
     println("($i)")
     println("loss: $l")
 
-    opt.change = min(0.5l, opt.change)
     push!(opt.losses, l)
     Flux.update!(opt_state, m, dldm)
     heatmap(m()) |> display

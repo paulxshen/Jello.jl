@@ -13,9 +13,8 @@ function Blob(sz::Base.AbstractVecOrTuple;
 
     if !periodic
         σ = 0.5lmin
-        R1 = round(Int, 2σ)
         R2 = round(Int, 2σ)
-        # R2 = round(lmin)
+        R1 = round(Int, lmin / 2)
         R = R1
         psz = sz + 2R
         if isa(init, Real)
@@ -25,13 +24,13 @@ function Blob(sz::Base.AbstractVecOrTuple;
         else
             p = pad(init, :replicate, R)
         end
-        # p = F(0.25) + p / 2
+        p = 0.8p + 0.1 |> F
 
         n = 2R1 + 1
         conv1 = Conv((n, n), 1 => 1)
         conv1.weight .= ball(R1, N; normalized=true) do r
-            # (R1 - x + 1) / R1
-            exp(-(r / σ)^2 / 2)
+            (R1 - r + 1) / R1
+            # exp(-(r / σ)^2 / 2)
         end
 
         n = 2R2 + 1

@@ -11,12 +11,12 @@ mutable struct AreaChangeOptimiser <: Optimisers.AbstractRule
     end
 end
 
-function invf(f, y; init=1, maxiters=100, reltol=0.2, abstol=reltol * abs(y))
+function invf(f, y; init=1, maxiters=100, reltol=0.2, abstol=1.0f-4, lims=(1.0f-20, 1.0f20))
     x = init
     a = b = nothing
     for i = 1:maxiters
         ϵ = f(x) - y
-        abs(ϵ) < abstol && return x
+        (abs(ϵ) < max(reltol * abs(y), abstol) || x < lims[1] || x > lims[2]) && return x
         if ϵ > 0
             b = x
             if isnothing(a)
@@ -50,36 +50,41 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         if losses[end] >= losses[end-1]
             # w = 0.85
             # m.p .== w * xs[end-1] + (1 - w) * xs[end]
-            o.change /= 1.5
+            o.η /= 1.5
             o.ρ = 0.8o.ρ + 0.2
         else
-            o.change *= 1.1
+            o.η *= 1.2
             o.ρ *= 0.95
         end
     end
 
+    x̄ .*= (0 .< x .< 1) .|| ((x .<= 0) .&& (x̄ .< 0)) .|| ((x .>= 1) .&& (x̄ .> 0))
+    # Z = maximum(abs, x̄)
+    # heatmap(x̄ / Z, colormap=:seismic, colorrange=(-1, 1)) |> display
     o.x̄ = o.ρ * o.x̄ + (1 - o.ρ) * x̄
     A = prod(size(m))
-    a0 = m() .> 0.5
+    a0 = m()
     x0 = deepcopy(x)
 
-    dA = 0
-    invf(o.change * A; init=o.η) do η
-        o.η = η
-        x̄ = A * η * o.x̄
+    if length(xs) == 1
+        dA = 0
+        invf(o.change * A; init=o.η) do η
+            o.η = η
+            x̄ = A * o.η * o.x̄
+            m.p .= x0 - x̄
+
+            sum(abs, m() - a0)
+        end
+    else
+        x̄ = A * o.η * o.x̄
         m.p .= x0 - x̄
-
-        m.p .= min.(1, m.p)
-        m.p .= max.(0, m.p)
-
-        a = m() .> 0.5
-        dA = sum(abs, a - a0)
     end
 
+    dA = sum(abs, m() - a0)
     x̄ = x0 - m.p
     m.p .= x0
 
-    @debug (; o.η, o.change, o.ρ)
+    @debug (; o.η, o.ρ)
     println("fractional change: $(dA/A)")
 
     return s, x̄

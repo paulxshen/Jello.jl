@@ -1,4 +1,8 @@
-
+const α = 1.0f-6
+function stepfunc(a::T, β) where {T}
+    T(α) * tanh(β * (a - T(0.5))) + (a > 0.5 ? 1 - T(α) : T(α))
+    # 2T(α) * (a - T(0.5)) + (a > 0.5 ? 1 - T(α) : T(α))
+end
 _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function ball(f, R, N=2; normalized=false)
     a = map(Base.product(fill(-R:R, N)...)) do r
@@ -79,11 +83,11 @@ end
 Base.round(x::AbstractArray) = round.(x)
 function ChainRulesCore.rrule(::typeof(round), x)
     y = round(x)
-    function pb(ȳ::T) where T
+    function pb(ȳ::T) where {T}
         # T = eltype(y)
-        r = x - 0.5 |> T
-        # NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
-        NoTangent(), ȳ .* (abs.(r) .< 0.1) |> T
+        r = abs.(x - 0.5) |> T
+        # NoTangent(), ȳ .* (abs.(r) .< 0.1) |> T
+        NoTangent(), ȳ .* gaussian.(r / 0.1) |> T
         # NoTangent(), ȳ
     end
     return y, pb
