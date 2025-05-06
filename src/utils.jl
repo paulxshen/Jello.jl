@@ -52,13 +52,6 @@ function apply_symmetries(a, symmetries)
         return a
     end
     for s = symmetries
-        # if :diagonal == s
-        #     a += a'
-        #     a /= 2
-        #     # a = (a + reverse(a, dims=1)') / 2
-        #     # a += reverse(a, dims=Tuple(1:ndims(a)))
-        #     # a /= 2
-        # end
         if Symbol(s) == :diagonal
             a += a'
             a /= 2
@@ -67,42 +60,20 @@ function apply_symmetries(a, symmetries)
             if !isnothing(dims)
                 a += reverse(a; dims)
                 a /= 2
-                # a = cat(a, reverse(selectdim(a, s, 1:sz[s]-size(a, s)), dims=s), dims=s)
             end
         end
     end
-    # if :inversion ∈ symmetries
-    #     for dims = 1:ndims(a)
-    #         a += reverse(a; dims)
-    #         a /= 2
-    #     end
-    # end
     a
 end
 
-Base.round(x::AbstractArray) = round.(x)
-function ChainRulesCore.rrule(::typeof(round), x)
-    y = round(x)
-    function pb(ȳ::T) where {T}
-        # T = eltype(y)
-        r = abs.(x - 0.5) |> T
-        # NoTangent(), ȳ .* (abs.(r) .< 0.1) |> T
-        NoTangent(), ȳ .* gaussian.(r / 0.1) |> T
-        # NoTangent(), ȳ
+function perforate!(a::AbstractArray{T,N}, R, r) where {T,N}
+    sz = size(a)
+    n = prod(round.(Int, sz / R))
+    for i = 1:n
+        c = round.(Int, rand(T, N) * sz)
+        lb = max.(round.(Int, c - r), 1)
+        ub = min.(round.(Int, c + r), sz)
+        a[(:).(lb, ub)...] .= 0.2
     end
-    return y, pb
+    a
 end
-
-# foo(x) = x
-# # foo(x) = Base.round.(x)
-# function Zygote.rrule(::typeof(foo), x)
-#     y = foo(x)
-#     function pb(ȳ)
-#         @debug extrema(ȳ)
-#         # T = eltype(x)
-#         # r = x - T(0.5)
-#         # NoTangent(), ((ȳ .> 0) .== (r .> 0)) .* ȳ #.* sqrt.(abs.(r))
-#         NoTangent(), ȳ
-#     end
-#     y, pb
-# end

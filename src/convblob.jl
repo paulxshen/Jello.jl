@@ -1,54 +1,58 @@
 struct ConvBlob
     p::AbstractArray
     symmetries
-    conv1
-    conv2
+    conv
 end
 Base.size(m::ConvBlob) = size(m.p)
 function (m::ConvBlob)()
-    @unpack p, symmetries, conv1, conv2 = m
-    # p = _ConvBlob(p, symmetries, conv1, 0.1)
-    p = _ConvBlob(p, symmetries, conv1)
+    @unpack p, symmetries, conv = m
+    # p = _ConvBlob(p, symmetries, conv, 0.1)
+    p = _ConvBlob(p, symmetries, conv)
     # @debug p |> extrema
     # foo(p)
 end
 
-function _ConvBlob(a::AbstractArray{T}, symmetries, conv) where {T}
+function _ConvBlob(a::AbstractArray{T,N}, symmetries, conv) where {T,N}
     @nograd (conv,)
+    a = apply_symmetries(a, symmetries)
+    # @debug a |> extrema
 
-    N = ndims(a)
     R = (size(conv.weight)[1] - 1) ÷ 2
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a)
     a = dropdims(a, dims=(N + 1, N + 2))
 
-    a = apply_symmetries(a, symmetries)
-    # stepfunc.(a, min(10, 1.5R))
-    # stepfunc.(a, 2R)
-    # g = pad.(cdiff.([a], 1:N) / 2, :replicate, [1:N .== i for i = 1:N])
-    # g = broadcast(1:2) do dims
-    #     n =  1:N .== dims
-    #     pad(cdiff(a; dims) / 2, :replicate, n)
-    # end
-    g = [
-        pad(cdiff(a; dims=1) / 2, :replicate, 1:N .== 1),
-        pad(cdiff(a; dims=2) / 2, :replicate, 1:N .== 2),
-    ]
-    lb = [a] .- g
-    ub = [a] .+ g
-    lb, ub = min.(lb, ub), max.(lb, ub)
-    v = map(lb, ub) do lb, ub
-        map(lb, ub) do lb, ub
-            _lb = lb .> 0.5
-            _ub = ub .> 0.5
-            b = _lb .== _ub
-            (ub - T(0.5)) ./ (ub - lb) .* (1 - b) + b .* _lb
+    gl = pad.(diff.((a,), 1:N), :replicate, [1:N .== i for i = 1:N], 0)
+    gr = pad.(diff.((a,), 1:N), :replicate, 0, [1:N .== i for i = 1:N])  # Added missing definition for gr
+    al = (a,) .- gl / 2
+    ar = (a,) .+ gr / 2
+
+    b = [a, a]
+    v = map(1:N) do i
+        map(CartesianIndices(a)) do I
+            x = b[i][I]
+            l = al[i][I]
+            r = ar[i][I]
+
+            # v = map(al, ar) do al, ar
+            #     map(al, ar, a) do l, r, x
+
+            _x = x > 0.5
+            _l = l > 0.5
+            _r = r > 0.5  # Fixed variable name
+
+            TOL = 1.0f-6
+            ((_l == _x || abs(x - l) < TOL ? _x : (max(x, l) - T(0.5)) / abs(x - l)) +
+             (_x == _r || abs(x - r) < TOL ? _x : (max(x, r) - T(0.5)) / abs(r - x))) / 2
         end
     end
-    map(v...) do v...
+    a = map(v...) do v...
         for (i, x) = enumerate(v)
-            ((i == N) || 0 < x < 1) && return x
+            (0 < x < 1 || i == length(v)) && return x
         end
     end
+    # @debug a |> extrema
+    @assert minimum(a) >= 0 && maximum(a) <= 1
+    a
     # _a .* .!edges + a .* edges
 end

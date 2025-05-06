@@ -9,34 +9,42 @@ Random.seed!(1)
 n = 100
 lmin = n / 10
 init = 0.5
+init_holes = false
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
 symmetries = [:x, :y, :diagonal]
-# symmetries = ["x"]
-symmetries = []
+# symmetries = []
 
 # generate a sample
-m = Blob(n, n; init, lmin, symmetries)
+m = Blob(n, n; init, init_holes, lmin, symmetries)
 display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
 # error("stop here")
 
-opt = AreaChangeOptimiser(m, 0.1)
+opt = AreaChangeOptimiser(m, 0.05)
 opt_state = Flux.setup(opt, m)
+
+invert(x, b) = b ? 1 - x : x
 c = [n, n] / 2 + 0.5
+R = [0.1, 0.2, 0.3] * n
 circ = map(CartesianIndices((n, n))) do I
     I = Tuple(I)
-    v = norm(I - c) - n / 4
-    v < 0 && return 1
-    v > 1 && return 0
-    1 - v
+    inverted = false
+    for r = R
+        v = norm(I - c) - r
+        v < 0 && return invert(1, inverted)
+        v < 1 && return invert(1 - v, inverted)
+        inverted = !inverted
+    end
+    invert(1, inverted)
 end
 heatmap(circ) |> display
+# error("stop here")
 
-for i = 1:30
+for i = 1:20
     global l, (dldm,) = Flux.withgradient(m) do m
         Flux.mae(circ, m())
     end

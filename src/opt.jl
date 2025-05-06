@@ -43,6 +43,8 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
 
     @debug extrema(m.p)
     @debug extrema(x̄)
+    @assert !any(isnan, x̄)
+
     @assert all(m.p .== x)
     @assert length(xs) == length(losses)
 
@@ -53,7 +55,7 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
             o.η /= 1.5
             o.ρ = 0.8o.ρ + 0.2
         else
-            o.η *= 1.2
+            o.η *= 1.1
             o.ρ *= 0.95
         end
     end
@@ -70,17 +72,21 @@ function Optimisers.apply!(o::AreaChangeOptimiser, s, x, x̄)
         dA = 0
         invf(o.change * A; init=o.η) do η
             o.η = η
+
             x̄ = A * o.η * o.x̄
             m.p .= x0 - x̄
-
-            sum(abs, m() - a0)
+            m.p .= min.(1, m.p)
+            m.p .= max.(0, m.p)
+            dA = sum(abs, m() - a0)
         end
     else
         x̄ = A * o.η * o.x̄
         m.p .= x0 - x̄
+        m.p .= min.(1, m.p)
+        m.p .= max.(0, m.p)
+        dA = sum(abs, m() - a0)
     end
 
-    dA = sum(abs, m() - a0)
     x̄ = x0 - m.p
     m.p .= x0
 

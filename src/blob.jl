@@ -2,7 +2,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     # lvoid=0, lsolid=0,
     lmin,
     symmetries=(), periodic=false,
-    init=0.5,
+    init=0.5, init_holes=false,
     F=Float32)
 
     init = F(init)
@@ -17,29 +17,29 @@ function Blob(sz::Base.AbstractVecOrTuple;
         R1 = round(Int, lmin / 2)
         R = R1
         psz = sz + 2R
-        if isa(init, Real)
+        if init == 0.5
             # d = F(0.1)
             # p = F(0.5) + 2d * (init - 1 + rand(F, sz))
             p = rand(F, psz)
+        elseif init == 0
+            p = zeros(F, psz)
+        elseif init == 1
+            p = ones(F, psz)
         else
             p = pad(init, :replicate, R)
         end
+        init_holes && perforate!(p, 1.5 * 2lmin, 0.8lmin / 2)
         p = 0.8p + 0.1 |> F
+        p .+= (rand(F, size(p)) - F(0.5)) / 5
 
         n = 2R1 + 1
-        conv1 = Conv((n, n), 1 => 1)
-        conv1.weight .= ball(R1, N; normalized=true) do r
+        conv = Conv((n, n), 1 => 1)
+        conv.weight .= ball(R1, N; normalized=true) do r
             (R1 - r + 1) / R1
             # exp(-(r / σ)^2 / 2)
         end
 
-        n = 2R2 + 1
-        conv2 = Conv((n, n), 1 => 1)
-        conv2.weight .= ball(R2, N; normalized=true) do r
-            exp(-(r / σ)^2 / 2)
-        end
-
-        return ConvBlob(p, symmetries, conv1, conv2)
+        return ConvBlob(p, symmetries, conv)
     else
     end
 end
