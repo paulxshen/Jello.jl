@@ -1,8 +1,8 @@
 # training a model to match a circular pattern
 ENV["JULIA_DEBUG"] = "Main"
 ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
-include("../src/main.jl")
-# using Jello
+# include("../src/main.jl")
+using Jello
 using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 
@@ -17,7 +17,7 @@ symmetries = [:x, :y, :diagonal]
 # symmetries = []
 
 # generate a sample
-m = Blob(n, n; init, init_holes, lmin, symmetries)
+m = Blob(n, n + 1; init, init_holes, lmin, symmetries)
 display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
@@ -30,7 +30,7 @@ opt_state = Flux.setup(opt, m)
 invert(x, b) = b ? 1 - x : x
 c = [n, n] / 2 + 0.5
 R = [0.1, 0.2, 0.3] * n
-circ = map(CartesianIndices((n, n))) do I
+circ = map(CartesianIndices((n, n + 1))) do I
     I = Tuple(I)
     inverted = false
     for r = R

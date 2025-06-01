@@ -8,6 +8,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     init = F(init)
     sz = Tuple(sz)
     N = length(sz)
+    symmetries = Symbol.(symmetries)
     # @assert lsolid > 0 || lvoid > 0
     # lmin = max(lsolid, lvoid)
 
@@ -16,7 +17,13 @@ function Blob(sz::Base.AbstractVecOrTuple;
         R2 = round(Int, 2σ)
         R1 = round(Int, lmin / 2)
         R = R1
-        psz = sz + 2R
+
+        if :diagonal ∈ symmetries
+            psz = Tuple(fill(maximum(sz), N))
+        else
+            psz = sz
+        end
+        psz += 2R
         if init == 0.5
             # d = F(0.1)
             # p = F(0.5) + 2d * (init - 1 + rand(F, sz))
@@ -39,7 +46,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             # exp(-(r / σ)^2 / 2)
         end
 
-        return ConvBlob(p, symmetries, conv)
+        return ConvBlob(p, sz, symmetries, conv)
     else
     end
 end

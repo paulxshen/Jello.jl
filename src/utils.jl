@@ -47,7 +47,7 @@ function se(r, d=2)
     # display(heatmap(a))
     centered(a)
 end
-function apply_symmetries(a, symmetries)
+function apply_symmetries(a, symmetries, sz)
     if isempty(symmetries)
         return a
     end
@@ -63,6 +63,7 @@ function apply_symmetries(a, symmetries)
             end
         end
     end
+    # @show size(a), sz
     a
 end
 

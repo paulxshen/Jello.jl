@@ -1,26 +1,28 @@
 struct ConvBlob
     p::AbstractArray
+    sz
     symmetries
     conv
 end
-Base.size(m::ConvBlob) = size(m.p)
+Base.size(m::ConvBlob) = m.sz
 function (m::ConvBlob)()
-    @unpack p, symmetries, conv = m
+    @unpack p, symmetries, sz, conv = m
     # p = _ConvBlob(p, symmetries, conv, 0.1)
-    p = _ConvBlob(p, symmetries, conv)
+    p = _ConvBlob(p, symmetries, sz, conv)
     # @debug p |> extrema
     # foo(p)
 end
 
-function _ConvBlob(a::AbstractArray{T,N}, symmetries, conv) where {T,N}
+function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, conv) where {T,N}
     @nograd (conv,)
-    a = apply_symmetries(a, symmetries)
+    a = apply_symmetries(a, symmetries, sz)
     # @debug a |> extrema
 
     R = (size(conv.weight)[1] - 1) ÷ 2
     a = reshape(a, size(a)..., 1, 1)
     a = conv(a)
     a = dropdims(a, dims=(N + 1, N + 2))
+    a = resize(a, sz)
 
     gl = pad.(diff.((a,), 1:N), :replicate, [1:N .== i for i = 1:N], 0)
     gr = pad.(diff.((a,), 1:N), :replicate, 0, [1:N .== i for i = 1:N])  # Added missing definition for gr
