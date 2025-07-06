@@ -35,7 +35,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         else
             p = pad(init, :replicate, R)
         end
-        init_holes && perforate!(p, 1.5 * 2lmin, 0.8lmin / 2)
+        init_holes && perforate!(p, 2lmin, lmin / 2, R)
         p = 0.8p + 0.1 |> F
         p .+= (rand(F, size(p)) - F(0.5)) / 5
 

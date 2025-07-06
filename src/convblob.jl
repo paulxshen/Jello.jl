@@ -55,6 +55,6 @@ function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, conv) where {T,N}
     end
     # @debug a |> extrema
     @assert minimum(a) >= 0 && maximum(a) <= 1
-    a
+    a .|> T
     # _a .* .!edges + a .* edges
 end

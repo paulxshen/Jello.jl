@@ -1,15 +1,16 @@
 # training a model to match a circular pattern
 ENV["JULIA_DEBUG"] = "Main"
 ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
-# include("../src/main.jl")
-using Jello
+include("../src/main.jl")
+# using Jello
 using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 
 n = 100
 lmin = n / 10
-init = 0.5
-init_holes = false
+# init = 0.5
+init = 1
+init_holes = true
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
@@ -22,10 +23,9 @@ display(heatmap(m()))
 # m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
 # display(heatmap(m()))
 
-# error("stop here")
+error("stop here")
 
-opt = AreaChangeOptimiser(m, 0.05)
-opt_state = Flux.setup(opt, m)
+opt = opt_state = nothing
 
 invert(x, b) = b ? 1 - x : x
 c = [n, n] / 2 + 0.5
@@ -42,7 +42,7 @@ circ = map(CartesianIndices((n, n + 1))) do I
     invert(1, inverted)
 end
 heatmap(circ) |> display
-# error("stop here")
+error("stop here")
 
 for i = 1:20
     global l, (dldm,) = Flux.withgradient(m) do m
@@ -51,7 +51,12 @@ for i = 1:20
     println("($i)")
     println("loss: $l")
 
-    push!(opt.losses, l)
+    global opt, opt_state
+    if isnothing(opt)
+        η = η_from_area_change(m, dldm, 0.1)
+        opt = Descent(η)
+        opt_state = Flux.setup(opt, m)
+    end
     Flux.update!(opt_state, m, dldm)
     heatmap(m()) |> display
     println()

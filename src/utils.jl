@@ -55,6 +55,9 @@ function apply_symmetries(a, symmetries, sz)
         if Symbol(s) == :diagonal
             a += a'
             a /= 2
+        elseif Symbol(s) == :inversion
+            a += reverse(a)
+            a /= 2
         else
             dims = findfirst(==(string(s)), ["x", "y", "z"])
             if !isnothing(dims)
@@ -67,11 +70,15 @@ function apply_symmetries(a, symmetries, sz)
     a
 end
 
-function perforate!(a::AbstractArray{T,N}, R, r) where {T,N}
-    sz = size(a)
-    n = prod(round.(Int, sz / R))
-    for i = 1:n
-        c = round.(Int, rand(T, N) * sz)
+function perforate!(a::AbstractArray{T,N}, R, r, b) where {T,N}
+    sz = size(a) - 2b
+    _sz = ceil.(Int, sz / R)
+    # n = prod(ceil.(Int, sz / R))
+    # for i = 1:n
+    #     c = round.(Int, rand(T, N) * sz)
+    for I = CartesianIndices(_sz)
+        I = Tuple(I)
+        c = (I - 0.5) .* sz ./ _sz + b
         lb = max.(round.(Int, c - r), 1)
         ub = min.(round.(Int, c + r), sz)
         a[(:).(lb, ub)...] .= 0.2
