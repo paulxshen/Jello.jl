@@ -36,13 +36,15 @@ function invf(f, y; init=1, maxiters=100, reltol=0.2, abstol=1.0f-4, lims=(1.0f-
     @debug "invf: maxiters reached"
     x
 end
-function η_from_area_change(m::Base.AbstractVecOrTuple, dldm, change=0.01)
+# function η_from_area_change(m::Base.AbstractVecOrTuple, dldm, change=0.01)
+function η_from_area_change(m::Base.AbstractVecOrTuple, dldx::AbstractArray{T,N}, change=0.01) where {T,N}
     A = sum(prod.(size.(m)))
     p0 = deepcopy(getfield.(m, :p))
     f0 = [m() for m in m]
     η = invf(change) do η
-        sum(map(m, p0, f0, dldm) do m, p0, f0, dldm
-            m.p .= p0 - η * dldm.p
+        # sum(map(m, p0, f0, dldm) do m, p0, f0, dldm
+        sum(map(m, p0, f0, eachslice(dldx, dims=N)) do m, p0, f0, dldx
+            m.p .= p0 - η * dldx
             r = sum(abs, m() - f0)
             m.p .= p0
             r

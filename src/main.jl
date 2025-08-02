@@ -1,6 +1,5 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, Flux, ChainRulesCore, Zygote
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, NNlib, ChainRulesCore, Zygote, Functors
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
-using Flux: @functor
 include("utils.jl")
 include("convblob.jl")
 include("fourierblob.jl")

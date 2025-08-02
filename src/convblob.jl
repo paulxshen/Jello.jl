@@ -1,26 +1,24 @@
-struct ConvBlob
+mutable struct ConvBlob
     p::AbstractArray
     sz
     symmetries
-    conv
+    W
 end
 Base.size(m::ConvBlob) = m.sz
 function (m::ConvBlob)()
-    @unpack p, symmetries, sz, conv = m
-    # p = _ConvBlob(p, symmetries, conv, 0.1)
-    p = _ConvBlob(p, symmetries, sz, conv)
+    @unpack p, symmetries, sz, W = m
+    p = _ConvBlob(p, symmetries, sz, W)
     # @debug p |> extrema
     # foo(p)
 end
 
-function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, conv) where {T,N}
-    @nograd (conv,)
+function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W) where {T,N}
+    @nograd W
     a = apply_symmetries(a, symmetries, sz)
     # @debug a |> extrema
+    R = (size(W)[1] - 1) ÷ 2
 
-    R = (size(conv.weight)[1] - 1) ÷ 2
-    a = reshape(a, size(a)..., 1, 1)
-    a = conv(a)
+    a = conv(reshape(a, size(a)..., 1, 1), reshape(W, size(W)..., 1, 1))
     a = dropdims(a, dims=(N + 1, N + 2))
     a = resize(a, sz)
 
