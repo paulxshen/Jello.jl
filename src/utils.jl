@@ -68,14 +68,18 @@ function apply_symmetries(a, symmetries, sz)
     a
 end
 
-function perforate!(a::AbstractArray{T,N}, v, P, D, B) where {T,N}
+function perforate!(a::AbstractArray{T,N}, v, P, D, R) where {T,N}
+    B = R + 2
     sz = size(a) - 2B
     _sz = round.(Int, sz / P)
-    for I = CartesianIndices(_sz + 1)
+    # n = prod(ceil.(Int, sz / R))
+    # for i = 1:n
+    #     c = round.(Int, rand(T, N) * sz)
+    for I = CartesianIndices(_sz)
         I = Tuple(I)
-        c = (I - 1) .* sz ./ _sz + B
+        c = (I - 0.5) .* sz ./ _sz + B + 0.5
         lb = max.(round.(Int, c - D / 2), 1)
-        ub = min.(round.(Int, c + D / 2), size(a))
+        ub = min.(round.(Int, c + D / 2), sz)
         a[(:).(lb, ub)...] .= v
     end
     a

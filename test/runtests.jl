@@ -1,7 +1,7 @@
 # training a model to match a circular pattern
 # ENV["JULIA_DEBUG"] = "Main"
-# include("../src/main.jl")
-using Jello
+include("../src/main.jl")
+# using Jello
 using Random, CairoMakie, Flux, LinearAlgebra
 Random.seed!(1)
 

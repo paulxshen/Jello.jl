@@ -42,8 +42,12 @@ function Blob(sz::Base.AbstractVecOrTuple;
         elseif init == 1
             p = ones(F, psz)
         else
-            p = pad(init, :replicate, R)
+            p = init
         end
+        b = zeros(Bool, psz)
+        b[(:).(3, size(b) - 2)...] .= 1
+        p = ifelse.(b, p, 1 - p)
+        p = pad(p, :replicate, R)
         if Symbol(init_pattern_level) == :invert
             b = zeros(Bool, size(p))
             perforate!(b, 1, init_pattern_spacing, init_pattern_diameter, R)
@@ -59,7 +63,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         W = ball(R1, N; normalized=true) do r
             (R1 - r + 1) / R1
             # exp(-(r / σ)^2 / 2)
-        end|>F
+        end |> F
 
         return ConvBlob(p, sz, symmetries, W)
     else
