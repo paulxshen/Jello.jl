@@ -71,14 +71,11 @@ end
 function perforate!(a::AbstractArray{T,N}, v, P, D, B) where {T,N}
     sz = size(a) - 2B
     _sz = round.(Int, sz / P)
-    # n = prod(ceil.(Int, sz / R))
-    # for i = 1:n
-    #     c = round.(Int, rand(T, N) * sz)
-    for I = CartesianIndices(_sz)
+    for I = CartesianIndices(_sz + 1)
         I = Tuple(I)
-        c = (I - 0.5) .* sz ./ _sz + B + 0.5
+        c = (I - 1) .* sz ./ _sz + B
         lb = max.(round.(Int, c - D / 2), 1)
-        ub = min.(round.(Int, c + D / 2), sz)
+        ub = min.(round.(Int, c + D / 2), size(a))
         a[(:).(lb, ub)...] .= v
     end
     a
