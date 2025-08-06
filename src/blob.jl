@@ -31,7 +31,6 @@ function Blob(sz::Base.AbstractVecOrTuple;
             else
                 psz = sz
             end
-            psz += 2R
         end
         if init == 0.5
             # d = F(0.1)
@@ -44,7 +43,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
         else
             p = init
         end
-        b = zeros(Bool, psz)
+        b = zeros(Bool, size(p))
         b[(:).(3, size(b) - 2)...] .= 1
         p = ifelse.(b, p, 1 - p)
         p = pad(p, :replicate, R)
