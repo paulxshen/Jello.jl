@@ -1,6 +1,6 @@
 const α = 1.0f-6
-function stepfunc(a::T, β) where {T}
-    T(α) * tanh(β * (a - T(0.5))) + (a > 0.5 ? 1 - T(α) : T(α))
+function stepfunc(a::T, contrast) where {T}
+    T(α) * tanh(contrast * (a - T(0.5))) + (a > 0.5 ? 1 - T(α) : T(α))
     # 2T(α) * (a - T(0.5)) + (a > 0.5 ? 1 - T(α) : T(α))
 end
 _ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)

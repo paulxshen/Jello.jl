@@ -3,6 +3,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     symmetries=(), periodic=false,
     init=0.5,
     init_pattern_level=nothing, init_pattern_spacing=nothing, init_pattern_diameter=nothing,
+    contrast=1,
     F=Float32)
 
     init = F(init)
@@ -32,20 +33,21 @@ function Blob(sz::Base.AbstractVecOrTuple;
                 psz = sz
             end
         end
+        n = rand(F, psz)
         if init == 0.5
-            # d = F(0.1)
-            # p = F(0.5) + 2d * (init - 1 + rand(F, sz))
-            p = rand(F, psz)
+            p = n
         elseif init == 0
-            p = zeros(F, psz)
+            p = 0.5n
         elseif init == 1
-            p = ones(F, psz)
+            p = 0.5n + 0.5
         else
-            p = init
+            # p = ifelse.(init .> 0.5, init - 0.1, init + 0.1)
+            p = 0.5init + 0.5n
         end
-        b = zeros(Bool, size(p))
-        b[(:).(3, size(b) - 2)...] .= 1
-        p = ifelse.(b, p, 1 - p)
+        p = F.(p)
+        # b = zeros(Bool, size(p))
+        # b[(:).(3, size(b) - 2)...] .= 1
+        # p = ifelse.(b, p, 1 - p)
         p = pad(p, :replicate, R)
         if Symbol(init_pattern_level) == :invert
             b = zeros(Bool, size(p))
@@ -55,8 +57,6 @@ function Blob(sz::Base.AbstractVecOrTuple;
         elseif !isnothing(init_pattern_level)
             perforate!(p, init_pattern_level, init_pattern_spacing, init_pattern_diameter, R)
         end
-        p = 0.8p + 0.1 |> F
-        p .+= (rand(F, size(p)) - F(0.5)) / 5
 
         n = 2R1 + 1
         W = ball(R1, N; normalized=true) do r
@@ -64,7 +64,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             # exp(-(r / σ)^2 / 2)
         end |> F
 
-        return ConvBlob(p, sz, symmetries, W)
+        return ConvBlob(p, sz, symmetries, W, contrast)
     else
     end
 end
