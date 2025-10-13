@@ -1,10 +1,10 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, Optimisers, NNlib, ChainRulesCore, Zygote, Functors
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, NNlib, ChainRulesCore, Zygote, Functors, ImageMorphology
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 include("utils.jl")
 include("convblob.jl")
 include("fourierblob.jl")
 include("blob.jl")
-include("opt.jl")
+# include("opt.jl")
 # include("sgopt.jl")
 
 # m = Blob(4, 4)

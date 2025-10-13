@@ -1,26 +1,31 @@
 # training a model to match a circular pattern
 # ENV["JULIA_DEBUG"] = "Main"
-# include("../src/main.jl")
-using Jello
-using Random, CairoMakie, Flux, LinearAlgebra
+include("../src/main.jl")
+# using Jello
+using Random, GLMakie, LinearAlgebra
 Random.seed!(1)
 
-n = 100
+n = 30
 lmin = n / 10
 # init = 0.5
 init = 0.5
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
-symmetries = [:x, :inversion]
-# symmetries = []
+# symmetries = [:x, :diagonal]
+symmetries = []
 contrast = 0.9
 
 # generate a sample
-m = Blob(n, n; init, lmin, symmetries, contrast)
-display(heatmap(m()))
-# m = Blob(n, n;  lmin, lsolid, symmetries=[1,2], periodic=true)
+# m = Blob(n, n; init, σ, symmetries, contrast)
+# display(heatmap(m(strict=true)))
 # display(heatmap(m()))
+m = Blob(n, n, n; init, lmin, symmetries, contrast)
+display(volume(m()))
+# m = Blob(n, n;  σ, lsolid, symmetries=[1,2], periodic=true)
+# a = m()
+# @show a |> extrema
+# display(heatmap(a))
 
 error("stop here")
 
@@ -41,11 +46,11 @@ circ = map(CartesianIndices((n, n + 1))) do I
     invert(1, inverted)
 end
 heatmap(circ) |> display
-error("stop here")
+# error("stop here")
 
 for i = 1:20
     global l, (dldm,) = Flux.withgradient(m) do m
-        Flux.mae(circ, m())
+        Flux.mae(circ, m(strict=true))
     end
     println("($i)")
     println("loss: $l")
