@@ -1,8 +1,8 @@
 mutable struct ConvBlob
     p::AbstractArray
     sz
-    σ
     lmin
+    strict
     symmetries
     W
     contrast
@@ -11,15 +11,13 @@ Base.size(m::ConvBlob) = m.sz
 @functor ConvBlob (p,)
 
 function (m::ConvBlob)()
-    @unpack p, σ, symmetries, sz, W, contrast, lmin = m
-    p = _ConvBlob(p, symmetries, sz, W, contrast, σ, lmin)
+    @unpack p, symmetries, sz, W, contrast, lmin, strict = m
+    p = _ConvBlob(p, symmetries, sz, W, contrast, lmin, strict)
     # @debug p |> extrema
-    # foo(p)
 end
 
-function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, σ, lmin) where {T,N}
-    @nograd W, σ, lmin
-    a0 = a
+function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, lmin, strict) where {T,N}
+    @nograd W, lmin
     if !isnothing(symmetries)
         a = apply_symmetries(a, symmetries, sz)
     end
@@ -30,7 +28,7 @@ function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, σ, lmin)
     a = resize(a, sz)
     contrast = T(contrast)
 
-    if !isnothing(lmin) && (lmin = round(Int, lmin)) > 0
+    if strict
         a += ignore_derivatives() do
             b = a .> 0.5
             if iseven(lmin)

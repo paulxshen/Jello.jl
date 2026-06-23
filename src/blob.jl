@@ -1,5 +1,5 @@
 function Blob(sz::Base.AbstractVecOrTuple;
-    lmin=nothing, σ=0.5lmin,
+    lmin, strict=false,
     symmetries=[], periodic=false,
     init=0.5,
     contrast=1,
@@ -10,6 +10,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
     symmetries = Symbol.(symmetries)
 
     if !periodic
+        σ = lmin / 2
         R = round(Int, 2σ)
         if :diagonal ∈ symmetries
             psz = Tuple(fill(maximum(sz), N))
@@ -27,7 +28,7 @@ function Blob(sz::Base.AbstractVecOrTuple;
             exp(-(r / (σ))^2 / 2)
         end |> F
 
-        return ConvBlob(p, sz, σ, lmin, symmetries, W, contrast)
+        return ConvBlob(p, sz, lmin, strict, symmetries, W, contrast)
     else
     end
 end
