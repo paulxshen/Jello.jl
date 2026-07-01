@@ -26,23 +26,10 @@ function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, lmin, str
     a = conv(reshape(a, size(a)..., 1, 1), reshape(W, size(W)..., 1, 1))
     a = dropdims(a, dims=(N + 1, N + 2))
     a = resize(a, sz)
+
+    contrast==0 && return a
+
     contrast = T(contrast)
-
-    if strict
-        a += ignore_derivatives() do
-            b = a .> 0.5
-            if iseven(lmin)
-                lmin += 1
-            end
-            R = (lmin - 1) / 2
-            C = ntuple(_ -> R + 1, N)
-            se = map(CartesianIndices(ntuple(_ -> lmin, N))) do I
-                norm(Tuple(I) - C) <= R + 0.01
-            end |> centered
-            closing(b, se) - b
-        end / 2
-    end
-
     m = b = 0
     ignore_derivatives() do
         b = a .> 0.5
@@ -53,13 +40,11 @@ function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, lmin, str
             dr = diff(r; dims)
             s = dims .== 1:N
 
-            I = ifelse.(s, (1:size(a, dims)-1,), (:,))
+            I = ifelse.(s, (1:(size(a, dims)-1),), (:,))
             m[I...] = m[I...] .|| ((db .!= 0) .&& (dr .> 0))
             I = ifelse.(s, (2:size(a, dims),), (:,))
             m[I...] = m[I...] .|| ((db .!= 0) .&& (dr .< 0))
         end
     end
-    a = a .* m + .!(m) .* (contrast * b + (1 - contrast) / 2 * a)
-    a = max.(a, 0)
-    a = min.(a, 1)
+    a = a .* m + .!(m) .* (contrast * b + (1 - contrast) * a)
 end
