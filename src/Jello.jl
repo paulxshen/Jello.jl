@@ -2,5 +2,5 @@ module Jello
 include("main.jl")
 
 greet() = print("Hello World!")
-export Blob, ConvBlob, InterpBlob, FourierBlob, η_from_area_change
+export Blob, ConvBlob, InterpBlob, FourierBlob, set!
 end # module Jello

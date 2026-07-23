@@ -1,26 +1,26 @@
-mutable struct ConvBlob
+abstract type AbstractBlob end
+struct ConvBlob<:AbstractBlob
     p::AbstractArray
-    sz
-    lmin
-    strict
-    symmetries
-    W
-    contrast
+    W::AbstractArray
+    sz::Tuple
+    repdims
+    symdims
+    meta
 end
 Base.size(m::ConvBlob) = m.sz
 @functor ConvBlob (p,)
 
 function (m::ConvBlob)()
-    @unpack p, symmetries, sz, W, contrast, lmin, strict = m
-    p = _ConvBlob(p, symmetries, sz, W, contrast, lmin, strict)
-    # @debug p |> extrema
+    @unpack p, symdims, sz, repdims, W, meta = m
+    @unpack contrast=meta
+    ignore_derivatives() do
+        p.=clamp.(p, 0, 1)
+    end
+    _ConvBlob(p, W, sz, repdims, symdims, contrast)
 end
 
-function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, lmin, strict) where {T,N}
-    @nograd W, lmin
-    if !isnothing(symmetries)
-        a = apply_symmetries(a, symmetries, sz)
-    end
+function _ConvBlob(a::AbstractArray{T,N}, W, sz, repdims, symdims, contrast) where {T,N}
+    !isempty(symdims) && (a = apply_symdims(a, symdims, ))
     # @debug a |> extrema
 
     a = conv(reshape(a, size(a)..., 1, 1), reshape(W, size(W)..., 1, 1))
@@ -46,5 +46,11 @@ function _ConvBlob(a::AbstractArray{T,N}, symmetries, sz, W, contrast, lmin, str
             m[I...] = m[I...] .|| ((db .!= 0) .&& (dr .< 0))
         end
     end
+
     a = a .* m + .!(m) .* (contrast * b + (1 - contrast) * a)
+
+    for dims=repdims
+        a = repeat(a, outer=ifelse.(dims .== (1:N), sz, 1))
+    end
+    a
 end

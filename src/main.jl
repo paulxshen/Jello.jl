@@ -1,4 +1,4 @@
-using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, NNlib, ChainRulesCore, Zygote, Functors, ImageMorphology
+using FFTW, UnPack, ArrayPadding, LinearAlgebra, Statistics, Porcupine, NNlib, ChainRulesCore, Zygote, Functors
 using Zygote: Buffer, ignore_derivatives, @ignore_derivatives
 include("utils.jl")
 include("convblob.jl")

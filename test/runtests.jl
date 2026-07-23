@@ -2,27 +2,26 @@
 # ENV["JULIA_DEBUG"] = "Main"
 include("../src/main.jl")
 # using Jello
-using Random, LinearAlgebra
+using Random, LinearAlgebra, CairoMakie
 Random.seed!(1)
 
 n = 30
 lmin = n / 10
 # init = 0.5
-init = 0.5
+init = 1
 # init = zeros(n, n)
 # init[:, 40:60] .= 1
 # init[1:40, 1:40] .= 2
-# symmetries = [:x, :diagonal]
-symmetries = [:x]
-contrast = 0.9
+# symdims = [:x, :diagonal]
+symdims = 1
 
 # generate a sample
-m = Blob(n, n; lmin, init, symmetries, contrast)
+m = Blob(n, n; lmin, init)
 # display(heatmap(m(strict=true)))
-# display(heatmap(m()))
-# m = Blob(n, n, n; init, lmin, symmetries, contrast)
+display(heatmap(m()))
+# m = Blob(n, n, n; init, lmin, symdims, contrast)
 # display(volume(m()))
-# m = Blob(n, n;  σ, lsolid, symmetries=[1,2], periodic=true)
+# m = Blob(n, n;  σ, lsolid, symdims=[1,2], periodic=true)
 # a = m()
 # @show a |> extrema
 # display(heatmap(a))

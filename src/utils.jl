@@ -1,11 +1,5 @@
-const α = 1.0f-6
-function stepfunc(a::T, contrast) where {T}
-    T(α) * tanh(contrast * (a - T(0.5))) + (a > 0.5 ? 1 - T(α) : T(α))
-    # 2T(α) * (a - T(0.5)) + (a > 0.5 ? 1 - T(α) : T(α))
-end
-_ceil(x) = x == floor(Int, x) ? Int(x) + 1 : ceil(Int, x)
 function ball(f, R, N=2; normalized=false)
-    a = map(Base.product(fill(-R:R, N)...)) do r
+    a = map(Base.product(fill((-R):R, N)...)) do r
         r = norm(collect(r))
         r > R + 0.001 ? 0 : f(r)
     end
@@ -26,7 +20,7 @@ function circle(r, d=2; normalized=false)
             else
                 0.5 - d
             end
-        end for v = Base.product(fill(-n:n, d)...)
+        end for v = Base.product(fill((-n):n, d)...)
     ] # circle
     if normalized
         a /= sum(a)
@@ -35,7 +29,7 @@ function circle(r, d=2; normalized=false)
 end
 function cone(r, d; normalized=false)
     r = round(Int, r - 0.01)
-    a = [1 - norm(v) / (r + 1) for v = Base.product(fill(-r:r, d)...)] # circle
+    a = [1 - norm(v) / (r + 1) for v = Base.product(fill((-r):r, d)...)] # circle
     a = max.(a, 0)
     if normalized
         a /= sum(a)
@@ -47,11 +41,11 @@ function se(r, d=2)
     # display(heatmap(a))
     centered(a)
 end
-function apply_symmetries(a, symmetries, sz)
-    if isempty(symmetries)
+function apply_symdims(a, symdims, )
+    if isempty(symdims)
         return a
     end
-    for s = symmetries
+    for s = symdims
         if Symbol(s) == :diagonal
             a += a'
             a /= 2
