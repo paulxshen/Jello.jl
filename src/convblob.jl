@@ -5,40 +5,43 @@ struct ConvBlob<:AbstractBlob
     sz::Tuple
     repdims
     symdims
+    lopen
+    ropen
     meta
 end
 Base.size(m::ConvBlob) = m.sz
 @functor ConvBlob (p,)
 
-function (m::ConvBlob)()
-    @unpack p, symdims, sz, repdims, W, meta = m
+function (m::ConvBlob)(; rep=true)
+    @unpack p, symdims, sz, repdims, W, meta, lopen, ropen = m
     @unpack contrast=meta
     ignore_derivatives() do
         p.=clamp.(p, 0, 1)
     end
-    _ConvBlob(p, W, sz, repdims, symdims, contrast)
+    _ConvBlob(p, W, sz, repdims, symdims, lopen, ropen, contrast, rep)
 end
 
-function _ConvBlob(a::AbstractArray{T,N}, W, sz, repdims, symdims, contrast) where {T,N}
-    !isempty(symdims) && (a = apply_symdims(a, symdims, ))
+function _ConvBlob(a::AbstractArray{T,n}, W, sz, repdims, symdims, lopen, ropen, contrast, rep) where {T,n}
+    N=length(sz)
+
+    !isempty(symdims) && (a = apply_symdims(a, symdims,))
     # @debug a |> extrema
 
     a = conv(reshape(a, size(a)..., 1, 1), reshape(W, size(W)..., 1, 1))
-    a = dropdims(a, dims=(N + 1, N + 2))
-    a = resize(a, sz)
+    a = dropdims(a, dims=(n + 1, n + 2))
 
     contrast==0 && return a
-
+    # @show size(a), sz
     contrast = T(contrast)
     m = b = 0
     ignore_derivatives() do
         b = a .> 0.5
         r = abs.(a - 0.5)
-        m = pad(zeros(Bool, size(a) - 2), 1, 1)
-        for dims = 1:N
+        m = pad(zeros(Bool, (size(a) - (lopen + ropen))...), true, lopen, ropen)
+        for dims = 1:n
             db = diff(b; dims)
             dr = diff(r; dims)
-            s = dims .== 1:N
+            s = dims .== 1:n
 
             I = ifelse.(s, (1:(size(a, dims)-1),), (:,))
             m[I...] = m[I...] .|| ((db .!= 0) .&& (dr .> 0))
@@ -48,7 +51,7 @@ function _ConvBlob(a::AbstractArray{T,N}, W, sz, repdims, symdims, contrast) whe
     end
 
     a = a .* m + .!(m) .* (contrast * b + (1 - contrast) * a)
-
+    (!rep || isempty(repdims)) && return a
     for dims=repdims
         a = repeat(a, outer=ifelse.(dims .== (1:N), sz, 1))
     end

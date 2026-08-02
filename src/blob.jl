@@ -2,14 +2,15 @@ function Blob(sz::Tuple;
     lmin,
     periodic=false,
     init=1,
-    optimize_shape_only=false,
+    topopt=false,
     symdims=[],
     repdims=[],
+    anchordims=[],
     F=Float32)
 
     N = length(sz)
     contrast=1
-    meta=Dict{Symbol,Any}(pairs((; contrast, optimize_shape_only)))
+    meta=Dict{Symbol,Any}(pairs((; contrast, topopt)))
 
     if !periodic
         σ = lmin / 2
@@ -26,31 +27,41 @@ function Blob(sz::Tuple;
             psz=sz
         else
             I=collect(1:N)
-            [deleteat!(I, i) for i=sort(repdims, rev=true)]
+            for i=sort(repdims, rev=true)
+                for (j, x) = enumerate(anchordims)
+                    abs(x) == i && (anchordims[j] = sign(x) * (abs(x) - 1))
+                end
+                deleteat!(I, i)
+            end
             psz=sz[I]
         end
+        n=length(psz)
 
+        psz+=2R
         w = 0.99
-        n = rand(F, psz)
-        p = w * init + (1 - w) * n
+        p = rand(F, psz)
+        p = w * init + (1 - w) * p
         p = F.(p)
-        p = pad(p, :replicate, R)
+        # p = pad(p, :replicate, R)
 
-        W = ball(R, N; normalized=true) do r
+        W = ball(R, n; normalized=true) do r
             exp(-(r / (σ))^2 / 2)
         end |> F
 
-        return ConvBlob(p, W, sz, repdims, symdims, meta)
+        lopen=(1:n) .∉ -anchordims
+        ropen=(1:n) .∉ anchordims
+
+        return ConvBlob(p, W, sz, repdims, symdims, lopen, ropen, meta)
     else
     end
 end
+Blob(sz::AbstractVector; kw...) = Blob(Tuple(sz); kw...)
 Blob(sz...; kw...) = Blob(sz; kw...)
 
 function set!(m::AbstractBlob, k, v)
     @unpack meta=m
     if k==:contrast
-        if !meta[:optimize_shape_only]
-            meta[k]=v
-        end
+        !meta[:topopt] && error("cannot set contrast when topopt=false")
     end
+    meta[k]=v
 end
