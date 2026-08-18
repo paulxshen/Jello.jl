@@ -41,24 +41,18 @@ function se(r, d=2)
     # display(heatmap(a))
     centered(a)
 end
-function apply_symdims(a, symdims, )
-    if isempty(symdims)
-        return a
-    end
-    for s = symdims
-        if Symbol(s) == :diagonal
-            a += a'
-            a /= 2
-        elseif Symbol(s) == :inversion
-            a += reverse(a)
-            a /= 2
-        else
-            dims = findfirst(==(string(s)), ["x", "y", "z"])
-            a += reverse(a; dims)
-            a /= 2
-        end
-    end
-    # @show size(a), sz
+function apply_symdims(a, symdims)
+    isempty(symdims) &&        return a
+    # if Symbol(s) == :diagonal
+    #     a += a'
+    #     a /= 2
+    # elseif Symbol(s) == :inversion
+    #     a += reverse(a)
+    #     a /= 2
+    # else
+    # end
+    a += reverse(a; dims=Tuple(symdims))
+    a /= 2
     a
 end
 

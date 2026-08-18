@@ -3,8 +3,8 @@ function Blob(sz::Tuple;
     periodic=false,
     init=1,
     topopt=false,
-    symdims=[],
     repdims=[],
+    symdims=[],
     anchordims=[],
     F=Float32)
 
@@ -12,8 +12,10 @@ function Blob(sz::Tuple;
     contrast=1
     meta=Dict{Symbol,Any}(pairs((; contrast, topopt)))
 
+    repdims, symdims, anchordims = unique.([repdims, symdims, anchordims])
+
     if !periodic
-        σ = lmin / 2
+        σ = lmin / 4
         R = round(Int, 2σ)
 
         # if :diagonal ∈ symdims
@@ -30,6 +32,9 @@ function Blob(sz::Tuple;
             for i=sort(repdims, rev=true)
                 for (j, x) = enumerate(anchordims)
                     abs(x) == i && (anchordims[j] = sign(x) * (abs(x) - 1))
+                end
+                for (j, x) = enumerate(symdims)
+                    x == i && (symdims[j] -= 1)
                 end
                 deleteat!(I, i)
             end
@@ -48,8 +53,8 @@ function Blob(sz::Tuple;
             exp(-(r / (σ))^2 / 2)
         end |> F
 
-        lopen=(1:n) .∉ -anchordims
-        ropen=(1:n) .∉ anchordims
+        lopen=(1:n) .∉ (-anchordims,)
+        ropen=(1:n) .∉ (anchordims,)
 
         return ConvBlob(p, W, sz, repdims, symdims, lopen, ropen, meta)
     else

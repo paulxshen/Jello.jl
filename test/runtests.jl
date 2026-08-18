@@ -8,10 +8,15 @@ Random.seed!(1)
 n = 20
 lmin = n / 10
 init = 1
-repdims=3
-anchordims=[-1]
+repdims=[3]
+symdims=[2]
+anchordims=[]
 
 # generate a sample
-m = Blob(n, n, n; lmin, init, repdims, anchordims)
+m = Blob(2n, n, n; lmin, init, repdims, anchordims)
 a=m()
 display(heatmap(a[:, :, 1]))
+Zygote.gradient(m) do m
+    # @nograd m
+    sum(m())
+end
