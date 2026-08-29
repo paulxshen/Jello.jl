@@ -25,10 +25,10 @@ function Blob(sz::Tuple;
         # end
 
         isa(repdims, Int) && (repdims = [repdims])
+        I=collect(1:N)
         if isempty(repdims)
             psz=sz
         else
-            I=collect(1:N)
             for i=sort(repdims, rev=true)
                 for (j, x) = enumerate(anchordims)
                     abs(x) == i && (anchordims[j] = sign(x) * (abs(x) - 1))
@@ -42,10 +42,14 @@ function Blob(sz::Tuple;
         end
         n=length(psz)
 
-        psz+=2R
-        w = 0.99
-        p = rand(F, psz)
-        p = w * init + (1 - w) * p
+        if init==1
+            w = 0.99
+            p = rand(F, psz)
+            p = w * init + (1 - w) * p
+        else
+            @assert size(init)==sz
+            p=init[ifelse.((1:N) .∈ (I,), (:,), 1)...]
+        end
         p = F.(p)
         # p = pad(p, :replicate, R)
 

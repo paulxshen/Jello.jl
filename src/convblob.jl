@@ -25,7 +25,9 @@ function _ConvBlob(a::AbstractArray{T,n}, W, sz, repdims, symdims, lopen, ropen,
     N=length(sz)
 
     a = apply_symdims(a, symdims)
-    # @debug a |> extrema
+
+    R=(size(W)-1) .÷ 2
+    a=pad(a, :replicate, R)
 
     a = conv(reshape(a, size(a)..., 1, 1), reshape(W, size(W)..., 1, 1))
     a = dropdims(a, dims=(n + 1, n + 2))
