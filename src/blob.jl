@@ -43,13 +43,13 @@ function Blob(sz::Tuple;
         n=length(psz)
 
         if init==1
-            w = 0.99
-            p = rand(F, psz)
-            p = w * init + (1 - w) * p
+            p=ones(F, psz)
         else
             @assert size(init)==sz
             p=init[ifelse.((1:N) .∈ (I,), (:,), 1)...]
         end
+        w = 0.99
+        p = w * p + (1 - w) * rand(F, psz)
         p = F.(p)
         # p = pad(p, :replicate, R)
 
