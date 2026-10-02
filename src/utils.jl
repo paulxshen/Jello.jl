@@ -42,7 +42,7 @@ function se(r, d=2)
     centered(a)
 end
 function apply_symdims(a, symdims)
-    isempty(symdims) &&        return a
+    isempty(symdims) && return a
     # if Symbol(s) == :diagonal
     #     a += a'
     #     a /= 2
